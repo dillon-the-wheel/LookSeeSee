@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Look See See</string>
+
+    <!-- Setup screen -->
+    <string name="setup_title">Look See See</string>
+    <string name="language_toggle_english">English</string>
+    <string name="language_toggle_chinese">中文</string>
+
+    <string name="setup_section_albums">Choose Albums</string>
+    <string name="setup_albums_empty">No albums found on this device yet.</string>
+    <string name="setup_album_item_count">%1$d items</string>
+
+    <string name="setup_section_timer">Session Length</string>
+    <string name="setup_minutes_label">%1$d minutes</string>
+
+    <string name="setup_section_pin">Set a PIN</string>
+    <string name="setup_pin_hint">Enter a 4-digit PIN</string>
+    <string name="setup_pin_confirm_hint">Confirm PIN</string>
+    <string name="setup_pin_mismatch">PINs don\'t match. Try again.</string>
+
+    <string name="setup_section_interrupts">Calls &amp; Texts</string>
+    <string name="setup_interrupts_toggle">Silence notifications during play</string>
+    <string name="setup_interrupts_description">Calls always come through. When on, texts and other notifications stay quiet until the session ends.</string>
+
+    <string name="setup_begin_session">Begin Session</string>
+    <string name="setup_begin_session_disabled_hint">Choose at least one album and set a PIN to begin</string>
+
+    <string name="permission_rationale_title">Access Photos &amp; Videos</string>
+    <string name="permission_rationale_body">Look See See needs permission to see your photos and videos so you can choose what your child sees.</string>
+    <string name="permission_grant_button">Grant Access</string>
+
+    <!-- PIN dialog -->
+    <string name="pin_dialog_title">Enter PIN</string>
+    <string name="pin_dialog_error">Incorrect PIN</string>
+    <string name="pin_dialog_cancel">Cancel</string>
+
+    <!-- End screen (banner text is intentionally shown bilingual together, see end_all_done) -->
+    <string name="end_all_done" translatable="false">All Done 完了</string>
+    <string name="end_sailboat_hint">Hold to play again</string>
+    <string name="end_house_hint">Hold to go back</string>
+
+    <!-- Accessibility -->
+    <string name="cd_play_button">Play</string>
+    <string name="cd_scrubber">Video progress</string>
+    <string name="cd_grid_thumbnail">Photo or video thumbnail</string>
+    <string name="cd_sailboat_icon">Play again</string>
+    <string name="cd_house_icon">Back to setup</string>
+</resources>

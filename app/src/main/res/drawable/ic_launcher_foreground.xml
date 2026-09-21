@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simple original "eye" mark: outer almond shape + iris + highlight -->
+    <path
+        android:pathData="M20,54 C33,34 75,34 88,54 C75,74 33,74 20,54 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M54,54m-14,0a14,14 0,1 1,28 0a14,14 0,1 1,-28 0"
+        android:fillColor="#FFD37A" />
+    <path
+        android:pathData="M54,54m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0"
+        android:fillColor="#2B1B3D" />
+    <path
+        android:pathData="M49,49m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"
+        android:fillColor="#FFFFFF" />
+</vector>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">看表姐</string>
+    <string name="setup_title">看表姐</string>
+
+    <string name="setup_section_albums">选择相册</string>
+    <string name="setup_albums_empty">此设备上还没有找到相册。</string>
+    <string name="setup_album_item_count">%1$d 个项目</string>
+
+    <string name="setup_section_timer">时长设置</string>
+    <string name="setup_minutes_label">%1$d 分钟</string>
+
+    <string name="setup_section_pin">设置密码</string>
+    <string name="setup_pin_hint">输入4位数密码</string>
+    <string name="setup_pin_confirm_hint">确认密码</string>
+    <string name="setup_pin_mismatch">密码不一致，请重试。</string>
+
+    <string name="setup_section_interrupts">来电与短信</string>
+    <string name="setup_interrupts_toggle">播放时静音通知</string>
+    <string name="setup_interrupts_description">来电始终可以接通。开启后，短信和其他通知会在本次结束前保持静音。</string>
+
+    <string name="setup_begin_session">开始</string>
+    <string name="setup_begin_session_disabled_hint">请至少选择一个相册并设置密码后开始</string>
+
+    <string name="permission_rationale_title">访问照片和视频</string>
+    <string name="permission_rationale_body">看表姐需要访问您的照片和视频，以便您选择孩子可以看到的内容。</string>
+    <string name="permission_grant_button">授权访问</string>
+
+    <string name="pin_dialog_title">输入密码</string>
+    <string name="pin_dialog_error">密码错误</string>
+    <string name="pin_dialog_cancel">取消</string>
+
+    <string name="end_sailboat_hint">长按再玩一次</string>
+    <string name="end_house_hint">长按返回</string>
+
+    <string name="cd_play_button">播放</string>
+    <string name="cd_scrubber">视频进度</string>
+    <string name="cd_grid_thumbnail">照片或视频缩略图</string>
+    <string name="cd_sailboat_icon">再玩一次</string>
+    <string name="cd_house_icon">返回设置</string>
+</resources>

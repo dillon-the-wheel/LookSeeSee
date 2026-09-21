@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sunset_dusk">#2B1B3D</color>
+    <color name="sunset_orange">#FF8A5B</color>
+    <color name="sunset_pink">#FFC6A8</color>
+    <color name="sunset_gold">#FFD37A</color>
+    <color name="app_primary">#3B6FB6</color>
+    <color name="app_primary_dark">#26507F</color>
+    <color name="app_background">#F5F7FA</color>
+</resources>
