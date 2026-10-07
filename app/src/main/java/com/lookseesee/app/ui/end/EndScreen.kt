@@ -24,11 +24,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -146,7 +148,8 @@ fun EndScreen(
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier
-                .align(Alignment.Center)
+                // Below the horizon (drawn at ~62% down), over the water rather than the sun.
+                .align(BiasAlignment(horizontalBias = 0f, verticalBias = 0.6f))
                 .background(Color.Black.copy(alpha = 0.25f))
                 .padding(horizontal = 28.dp, vertical = 14.dp),
         )
@@ -205,6 +208,8 @@ private fun SunsetBackground() {
             )
         }
 
+        drawAviators(sunCenter, sunRadius)
+
         // Water, drawn last so it sits in front of the sun and covers the small part
         // of it that dips below the horizon. The reflection is a horizontal gradient
         // across the water itself - bright where it's directly under the sun, fading
@@ -219,4 +224,52 @@ private fun SunsetBackground() {
             size = Size(size.width, size.height - horizonY),
         )
     }
+}
+
+/** A pair of aviator sunglasses - two lenses, a bridge, and angled temple arms - to
+ * personify the sun, drawn at roughly its eye-level so it reads as a little face. */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawAviators(sunCenter: Offset, sunRadius: Float) {
+    val lensColor = Color(0xFF1A1A1A).copy(alpha = 0.88f)
+    val glassesY = sunCenter.y - sunRadius * 0.05f
+    val lensWidth = sunRadius * 0.62f
+    val lensHeight = sunRadius * 0.46f
+    val lensGap = sunRadius * 0.22f
+    val leftLensCenter = Offset(sunCenter.x - lensGap / 2f - lensWidth / 2f, glassesY)
+    val rightLensCenter = Offset(sunCenter.x + lensGap / 2f + lensWidth / 2f, glassesY)
+
+    for (lensCenter in listOf(leftLensCenter, rightLensCenter)) {
+        drawOval(
+            color = lensColor,
+            topLeft = Offset(lensCenter.x - lensWidth / 2f, lensCenter.y - lensHeight / 2f),
+            size = Size(lensWidth, lensHeight),
+        )
+        drawLine(
+            color = Color.White.copy(alpha = 0.35f),
+            start = Offset(lensCenter.x - lensWidth * 0.2f, lensCenter.y - lensHeight * 0.2f),
+            end = Offset(lensCenter.x + lensWidth * 0.05f, lensCenter.y - lensHeight * 0.3f),
+            strokeWidth = lensHeight * 0.12f,
+            cap = StrokeCap.Round,
+        )
+    }
+
+    drawLine(
+        color = lensColor,
+        start = Offset(leftLensCenter.x + lensWidth / 2f, glassesY - lensHeight * 0.1f),
+        end = Offset(rightLensCenter.x - lensWidth / 2f, glassesY - lensHeight * 0.1f),
+        strokeWidth = lensHeight * 0.18f,
+    )
+    drawLine(
+        color = lensColor,
+        start = Offset(leftLensCenter.x - lensWidth / 2f, glassesY),
+        end = Offset(leftLensCenter.x - lensWidth / 2f - sunRadius * 0.35f, glassesY - sunRadius * 0.12f),
+        strokeWidth = lensHeight * 0.14f,
+        cap = StrokeCap.Round,
+    )
+    drawLine(
+        color = lensColor,
+        start = Offset(rightLensCenter.x + lensWidth / 2f, glassesY),
+        end = Offset(rightLensCenter.x + lensWidth / 2f + sunRadius * 0.35f, glassesY - sunRadius * 0.12f),
+        strokeWidth = lensHeight * 0.14f,
+        cap = StrokeCap.Round,
+    )
 }

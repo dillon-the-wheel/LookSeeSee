@@ -191,7 +191,11 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset, pause: Bool
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 40.dp)
+                // Vertical padding here pushes the slider's visible track AWAY from the
+                // true bottom edge (it's padding inside a bottom-aligned box, so the
+                // bottom value is the gap left to the screen edge) - a small value puts
+                // it down near the edge, clear of the video content above it.
+                .padding(horizontal = 16.dp, vertical = 8.dp)
                 .semantics { contentDescription = scrubberDescription },
             colors = SliderDefaults.colors(
                 thumbColor = Color.White,

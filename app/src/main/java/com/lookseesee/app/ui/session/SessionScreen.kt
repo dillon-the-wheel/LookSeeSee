@@ -17,7 +17,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +46,9 @@ import com.lookseesee.app.data.model.MediaEntry
 private val CORNER_SKIP_HOTSPOT_SIZE = 64.dp
 private const val CORNER_TAP_REQUIRED_COUNT = 5
 private const val CORNER_TAP_WINDOW_MS = 1500L
+// Covers the video scrubber's own touch area (its bottom padding plus its touch
+// target height) so a scrub drag there is never also read as a page swipe.
+private val VIDEO_SCRUBBER_ZONE = 64.dp
 
 @Composable
 fun SessionScreen(
@@ -89,6 +95,7 @@ fun SessionScreen(
                     onRequestNext = viewModel::goNext,
                     onRequestPrevious = viewModel::goPrevious,
                     onRequestGrid = viewModel::openGrid,
+                    reservedBottomZone = if (item is MediaEntry.Video) VIDEO_SCRUBBER_ZONE else 0.dp,
                 ) { scale, offset ->
                     when (item) {
                         is MediaEntry.Photo -> AsyncImage(
@@ -166,15 +173,30 @@ private fun GridOverlay(mediaList: List<MediaEntry>, onSelect: (Int) -> Unit) {
             modifier = Modifier.fillMaxSize(),
         ) {
             items(mediaList.size) { index ->
-                AsyncImage(
-                    model = mediaList[index].uri,
-                    contentDescription = stringResource(R.string.cd_grid_thumbnail),
-                    contentScale = ContentScale.Crop,
+                val item = mediaList[index]
+                Box(
                     modifier = Modifier
                         .padding(2.dp)
                         .aspectRatio(1f)
                         .clickable { onSelect(index) },
-                )
+                ) {
+                    AsyncImage(
+                        model = item.uri,
+                        contentDescription = stringResource(R.string.cd_grid_thumbnail),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    // Marks videos apart from photos in mixed mode, so a child can tell
+                    // which thumbnails will play rather than just show a still image.
+                    if (item is MediaEntry.Video) {
+                        Icon(
+                            imageVector = Icons.Filled.PlayCircle,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.align(Alignment.Center),
+                        )
+                    }
+                }
             }
         }
     }

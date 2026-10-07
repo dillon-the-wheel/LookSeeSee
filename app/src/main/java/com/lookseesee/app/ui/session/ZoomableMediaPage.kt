@@ -17,6 +17,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
@@ -41,6 +42,10 @@ fun ZoomableMediaPage(
     onRequestPrevious: () -> Unit,
     onRequestGrid: () -> Unit,
     modifier: Modifier = Modifier,
+    // A strip at the bottom (e.g. a video's scrubber) that this page's own swipe/zoom
+    // gesture should leave completely alone, so a long horizontal scrub drag doesn't
+    // also cross the swipe threshold and flip to the next/previous item underneath it.
+    reservedBottomZone: Dp = 0.dp,
     content: @Composable BoxScope.(scale: Float, offset: Offset) -> Unit,
 ) {
     var scale by remember(pageKey) { mutableFloatStateOf(1f) }
@@ -49,21 +54,34 @@ fun ZoomableMediaPage(
     val density = LocalDensity.current
     val swipeThresholdPx = with(density) { SWIPE_THRESHOLD_DP.toPx() }
     val touchSlopPx = with(density) { TOUCH_SLOP_DP.toPx() }
+    val reservedBottomPx = with(density) { reservedBottomZone.toPx() }
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .onSizeChanged { boxSize = it }
-            .pointerInput(pageKey) {
+            .pointerInput(pageKey, reservedBottomPx) {
                 awaitEachGesture {
                     var localScale = scale
                     var localOffset = offset
                     var overflow = Offset.Zero
                     var hasExceededSlop = false
                     var pendingPan = Offset.Zero
+                    var isFirstEvent = true
+                    var suppressed = false
 
                     do {
                         val event = awaitPointerEvent()
+
+                        if (isFirstEvent) {
+                            isFirstEvent = false
+                            val downY = event.changes.firstOrNull()?.position?.y
+                            if (downY != null && downY >= boxSize.height - reservedBottomPx) {
+                                suppressed = true
+                            }
+                        }
+                        if (suppressed) continue
+
                         val rawZoomChange = event.calculateZoom()
                         val rawPanChange = event.calculatePan()
 
@@ -106,6 +124,8 @@ fun ZoomableMediaPage(
                             event.changes.forEach { it.consume() }
                         }
                     } while (event.changes.any { it.pressed })
+
+                    if (suppressed) return@awaitEachGesture
 
                     val horizontalWins = abs(overflow.x) >= abs(overflow.y)
                     when {

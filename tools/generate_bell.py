@@ -109,36 +109,6 @@ def add_ocean_ambiance(buffer, total_samples, rng):
         buffer[i] += (brown * 2.5 + hiss) * swell * 0.05
 
 
-def render_seagull(buffer, start_sample, rng):
-    """A single short "caaw" cry: a tone that bends up then down with a light
-    vibrato, synthesized rather than sampled."""
-    duration = rng.uniform(0.35, 0.6)
-    n_samples = int(duration * SAMPLE_RATE)
-    base_freq = rng.uniform(1600.0, 2200.0)
-    sweep = rng.uniform(600.0, 1000.0)
-    for i in range(n_samples):
-        idx = start_sample + i
-        if idx >= len(buffer):
-            break
-        frac = i / n_samples
-        pitch_curve = math.sin(math.pi * frac)
-        freq = base_freq + sweep * pitch_curve
-        vibrato = 1.0 + 0.03 * math.sin(2.0 * math.pi * 18.0 * (i / SAMPLE_RATE))
-        envelope = math.sin(math.pi * frac) ** 0.6
-        sample = math.sin(2.0 * math.pi * freq * vibrato * (i / SAMPLE_RATE))
-        buffer[idx] += sample * envelope * 0.12
-
-
-def add_seagulls(buffer, total_samples, rng):
-    """Scatters a handful of seagull cries at pseudo-random (but deterministic,
-    seeded) intervals across the whole duration."""
-    total_seconds = total_samples / SAMPLE_RATE
-    t = rng.uniform(1.0, 3.0)
-    while t < total_seconds - 1.0:
-        render_seagull(buffer, int(t * SAMPLE_RATE), rng)
-        t += rng.uniform(2.5, 6.0)
-
-
 def main():
     total_beats = sum(beats for (_, _, beats, _) in MELODY)
     tail_seconds = 4.5  # let the final note ring out past the nominal timeline
@@ -154,9 +124,8 @@ def main():
             render_note(buffer, start_sample, freq, ring_seconds, gain=0.22)
         cursor_beats += beats
 
-    rng = random.Random(7)  # fixed seed: deterministic output, still sounds scattered
+    rng = random.Random(7)  # fixed seed: deterministic output
     add_ocean_ambiance(buffer, total_samples, rng)
-    add_seagulls(buffer, total_samples, rng)
 
     peak = max(1e-9, max(abs(s) for s in buffer))
     target_peak = 0.85
