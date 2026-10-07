@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircle
@@ -57,6 +59,10 @@ fun SessionScreen(
     viewModel: SessionViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+    // Hoisted here (rather than inside GridOverlay) so it survives the grid overlay
+    // being added and removed from composition each time it opens and closes -
+    // otherwise a fresh LazyGridState reset the scroll position to the top every time.
+    val gridState = rememberLazyGridState()
 
     LaunchedEffect(Unit) {
         onEnterKiosk()
@@ -121,6 +127,7 @@ fun SessionScreen(
             GridOverlay(
                 mediaList = state.mediaList,
                 onSelect = viewModel::selectFromGrid,
+                gridState = gridState,
             )
         }
 
@@ -161,7 +168,7 @@ fun SessionScreen(
 }
 
 @Composable
-private fun GridOverlay(mediaList: List<MediaEntry>, onSelect: (Int) -> Unit) {
+private fun GridOverlay(mediaList: List<MediaEntry>, onSelect: (Int) -> Unit, gridState: LazyGridState) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -169,6 +176,7 @@ private fun GridOverlay(mediaList: List<MediaEntry>, onSelect: (Int) -> Unit) {
     ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(4),
+            state = gridState,
             contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp),
             modifier = Modifier.fillMaxSize(),
         ) {

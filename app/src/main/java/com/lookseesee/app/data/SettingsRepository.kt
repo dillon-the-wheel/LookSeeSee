@@ -25,6 +25,10 @@ data class SessionSettings(
     val selectedMediaKeys: Set<String> = emptySet(),
     val minutes: Int = 10,
     val pinHash: String? = null,
+    // Kept alongside the hash purely so the Setup screen can pre-fill the PIN field
+    // with the parent's existing PIN instead of leaving it blank - this is a kid-lock,
+    // not a secret worth being unable to show back to its own owner.
+    val pin: String? = null,
     val silenceNotifications: Boolean = false,
     val mediaTypeFilter: MediaTypeFilter = MediaTypeFilter.BOTH,
 ) {
@@ -39,6 +43,7 @@ class SettingsRepository(private val context: Context) {
         val MEDIA_KEYS = stringSetPreferencesKey("selected_media_keys")
         val MINUTES = intPreferencesKey("minutes")
         val PIN_HASH = stringPreferencesKey("pin_hash")
+        val PIN_PLAIN = stringPreferencesKey("pin_plain")
         val SILENCE_NOTIFICATIONS = booleanPreferencesKey("silence_notifications")
         val MEDIA_TYPE_FILTER = stringPreferencesKey("media_type_filter")
     }
@@ -49,6 +54,7 @@ class SettingsRepository(private val context: Context) {
             selectedMediaKeys = prefs[Keys.MEDIA_KEYS] ?: emptySet(),
             minutes = prefs[Keys.MINUTES] ?: 10,
             pinHash = prefs[Keys.PIN_HASH],
+            pin = prefs[Keys.PIN_PLAIN],
             silenceNotifications = prefs[Keys.SILENCE_NOTIFICATIONS] ?: false,
             mediaTypeFilter = prefs[Keys.MEDIA_TYPE_FILTER]?.let { name ->
                 runCatching { MediaTypeFilter.valueOf(name) }.getOrDefault(MediaTypeFilter.BOTH)
@@ -71,7 +77,10 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun setPin(pin: String) {
-        context.dataStore.edit { it[Keys.PIN_HASH] = PinHasher.hash(pin) }
+        context.dataStore.edit {
+            it[Keys.PIN_HASH] = PinHasher.hash(pin)
+            it[Keys.PIN_PLAIN] = pin
+        }
     }
 
     suspend fun setSilenceNotifications(enabled: Boolean) {

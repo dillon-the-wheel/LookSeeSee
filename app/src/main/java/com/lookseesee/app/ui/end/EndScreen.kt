@@ -30,7 +30,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -226,16 +228,18 @@ private fun SunsetBackground() {
     }
 }
 
-/** A pair of aviator sunglasses - two lenses, a bridge, and angled temple arms - to
- * personify the sun, drawn at roughly its eye-level so it reads as a little face. */
+/** A pair of aviator sunglasses, eyebrows, and a one-sided smirk, all shifted toward
+ * screen-right so the sun reads as a friendly face glancing that way - and so the
+ * right lens pokes past the sun's own silhouette, breaking up its clean round edge. */
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawAviators(sunCenter: Offset, sunRadius: Float) {
     val lensColor = Color(0xFF1A1A1A).copy(alpha = 0.88f)
     val glassesY = sunCenter.y - sunRadius * 0.05f
     val lensWidth = sunRadius * 0.62f
     val lensHeight = sunRadius * 0.46f
     val lensGap = sunRadius * 0.22f
-    val leftLensCenter = Offset(sunCenter.x - lensGap / 2f - lensWidth / 2f, glassesY)
-    val rightLensCenter = Offset(sunCenter.x + lensGap / 2f + lensWidth / 2f, glassesY)
+    val faceShiftX = sunRadius * 0.35f
+    val leftLensCenter = Offset(sunCenter.x - lensGap / 2f - lensWidth / 2f + faceShiftX, glassesY)
+    val rightLensCenter = Offset(sunCenter.x + lensGap / 2f + lensWidth / 2f + faceShiftX, glassesY)
 
     for (lensCenter in listOf(leftLensCenter, rightLensCenter)) {
         drawOval(
@@ -271,5 +275,33 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawAviators(sunCen
         end = Offset(rightLensCenter.x + lensWidth / 2f + sunRadius * 0.35f, glassesY - sunRadius * 0.12f),
         strokeWidth = lensHeight * 0.14f,
         cap = StrokeCap.Round,
+    )
+
+    // Eyebrows: both raised gently toward screen-right, above the glasses.
+    val eyebrowY = glassesY - lensHeight * 0.62f
+    for (lensCenter in listOf(leftLensCenter, rightLensCenter)) {
+        drawLine(
+            color = lensColor,
+            start = Offset(lensCenter.x - lensWidth * 0.32f, eyebrowY + lensHeight * 0.08f),
+            end = Offset(lensCenter.x + lensWidth * 0.32f, eyebrowY - lensHeight * 0.1f),
+            strokeWidth = lensHeight * 0.1f,
+            cap = StrokeCap.Round,
+        )
+    }
+
+    // A small one-sided smirk below the glasses, corner raised toward screen-right -
+    // a soft, reassuring look rather than a flat or worried line.
+    val mouthY = glassesY + sunRadius * 0.4f
+    val mouthPath = Path().apply {
+        moveTo(sunCenter.x + faceShiftX - sunRadius * 0.2f, mouthY)
+        quadraticTo(
+            sunCenter.x + faceShiftX + sunRadius * 0.08f, mouthY + sunRadius * 0.04f,
+            sunCenter.x + faceShiftX + sunRadius * 0.32f, mouthY - sunRadius * 0.1f,
+        )
+    }
+    drawPath(
+        path = mouthPath,
+        color = lensColor,
+        style = Stroke(width = lensHeight * 0.12f, cap = StrokeCap.Round),
     )
 }

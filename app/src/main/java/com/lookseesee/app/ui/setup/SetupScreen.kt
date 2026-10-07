@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
@@ -191,7 +190,7 @@ fun SetupScreen(
             style = MaterialTheme.typography.titleLarge,
         )
         PinSetupSection(
-            hasPin = state.hasPin,
+            initialPin = state.pin,
             onSubmit = viewModel::submitPin,
         )
 
@@ -430,42 +429,38 @@ private fun PicksTile(count: Int, thumbnailUri: android.net.Uri?, onOpen: () -> 
 
 @Composable
 private fun PinSetupSection(
-    hasPin: Boolean,
+    initialPin: String,
     onSubmit: (String) -> Unit,
 ) {
-    var pin by remember { mutableStateOf("") }
+    // Keyed on initialPin rather than Unit: the real stored PIN arrives asynchronously
+    // (a frame or two after this settings flow starts collecting), and re-seeding only
+    // when that incoming value actually changes - not on every recomposition - means it
+    // won't stomp over whatever the parent is actively mid-typing.
+    var pin by remember(initialPin) { mutableStateOf(initialPin) }
     var showPin by remember { mutableStateOf(false) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (hasPin && pin.isEmpty()) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(Icons.Filled.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.setup_section_pin))
+    OutlinedTextField(
+        value = pin,
+        onValueChange = { new ->
+            if (new.length <= 4 && new.all { it.isDigit() }) {
+                pin = new
+                if (new.length == 4) onSubmit(new)
             }
-        }
-        OutlinedTextField(
-            value = pin,
-            onValueChange = { new ->
-                if (new.length <= 4 && new.all { it.isDigit() }) {
-                    pin = new
-                    if (new.length == 4) onSubmit(new)
-                }
-            },
-            label = { Text(stringResource(R.string.setup_pin_hint)) },
-            singleLine = true,
-            visualTransformation = if (showPin) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-            trailingIcon = {
-                IconButton(onClick = { showPin = !showPin }) {
-                    Icon(
-                        imageVector = if (showPin) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = stringResource(
-                            if (showPin) R.string.cd_hide_pin else R.string.cd_show_pin,
-                        ),
-                    )
-                }
-            },
-            modifier = Modifier.width(200.dp),
-        )
-    }
+        },
+        label = { Text(stringResource(R.string.setup_pin_hint)) },
+        singleLine = true,
+        visualTransformation = if (showPin) VisualTransformation.None else PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+        trailingIcon = {
+            IconButton(onClick = { showPin = !showPin }) {
+                Icon(
+                    imageVector = if (showPin) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                    contentDescription = stringResource(
+                        if (showPin) R.string.cd_hide_pin else R.string.cd_show_pin,
+                    ),
+                )
+            }
+        },
+        modifier = Modifier.width(200.dp),
+    )
 }
