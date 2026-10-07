@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -52,9 +53,11 @@ import kotlinx.coroutines.delay
  * scrubber at the bottom to seek. No trim, share, download, or speed controls -
  * ExoPlayer's default controller UI is disabled in favor of this minimal surface.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset, pause: Boolean = false) {
     val context = LocalContext.current
+    val sliderInteractionSource = remember { MutableInteractionSource() }
     val player = remember(uri) {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(uri))
@@ -195,9 +198,10 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset, pause: Bool
                 activeTrackColor = Color.White.copy(alpha = 0.4f),
                 inactiveTrackColor = Color.White.copy(alpha = 0.4f),
             ),
-            thumb = { sliderState ->
+            interactionSource = sliderInteractionSource,
+            thumb = {
                 SliderDefaults.Thumb(
-                    sliderState = sliderState,
+                    interactionSource = sliderInteractionSource,
                     colors = SliderDefaults.colors(thumbColor = Color.White),
                     thumbSize = DpSize(10.dp, 10.dp),
                 )
