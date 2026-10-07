@@ -60,6 +60,7 @@ import com.lookseesee.app.R
 import com.lookseesee.app.data.model.Album
 import com.lookseesee.app.util.AppLanguage
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun SetupScreen(
     onBeginSession: () -> Unit,
