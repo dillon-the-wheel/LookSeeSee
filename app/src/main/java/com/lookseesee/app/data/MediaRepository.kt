@@ -48,39 +48,58 @@ class MediaRepository(private val context: Context) {
 
     suspend fun loadMedia(
         bucketIds: Set<String>,
+        individualKeys: Set<String> = emptySet(),
         filter: MediaTypeFilter = MediaTypeFilter.BOTH,
     ): List<MediaEntry> = withContext(Dispatchers.IO) {
-        if (bucketIds.isEmpty()) return@withContext emptyList()
+        val fromBuckets = if (bucketIds.isEmpty()) emptyList() else loadFromBuckets(bucketIds, filter)
+        // Individually hand-picked items always show regardless of the type filter -
+        // a parent who explicitly picked a video wants it included even in Photos-only mode.
+        val fromPicks = if (individualKeys.isEmpty()) emptyList() else loadFromKeys(individualKeys)
+        (fromBuckets + fromPicks)
+            .distinctBy { it.id to (it is MediaEntry.Video) }
+            .sortedByDescending { it.dateAdded }
+    }
 
+    private fun loadFromBuckets(bucketIds: Set<String>, filter: MediaTypeFilter): List<MediaEntry> {
         val photos = if (filter == MediaTypeFilter.VIDEOS) {
             emptyList()
         } else {
-            queryImages(bucketIds)
-                .map { row ->
-                    MediaEntry.Photo(
-                        id = row.id,
-                        uri = contentUriFor(row.id, isVideo = false),
-                        bucketId = row.bucketId,
-                        dateAdded = row.dateAdded,
-                    )
-                }
+            queryImages(bucketIds).map { it.toPhoto() }
         }
         val videos = if (filter == MediaTypeFilter.PHOTOS) {
             emptyList()
         } else {
-            queryVideos(bucketIds)
-                .map { row ->
-                    MediaEntry.Video(
-                        id = row.id,
-                        uri = contentUriFor(row.id, isVideo = true),
-                        bucketId = row.bucketId,
-                        dateAdded = row.dateAdded,
-                        durationMs = row.durationMs,
-                    )
-                }
+            queryVideos(bucketIds).map { it.toVideo() }
         }
-        (photos + videos).sortedByDescending { it.dateAdded }
+        return photos + videos
     }
+
+    private fun loadFromKeys(keys: Set<String>): List<MediaEntry> {
+        val photoIds = mutableSetOf<Long>()
+        val videoIds = mutableSetOf<Long>()
+        for (key in keys) {
+            val (id, isVideo) = MediaPickKey.decode(key) ?: continue
+            if (isVideo) videoIds += id else photoIds += id
+        }
+        val photos = if (photoIds.isEmpty()) emptyList() else queryImagesByIds(photoIds).map { it.toPhoto() }
+        val videos = if (videoIds.isEmpty()) emptyList() else queryVideosByIds(videoIds).map { it.toVideo() }
+        return photos + videos
+    }
+
+    private fun RawRow.toPhoto() = MediaEntry.Photo(
+        id = id,
+        uri = contentUriFor(id, isVideo = false),
+        bucketId = bucketId,
+        dateAdded = dateAdded,
+    )
+
+    private fun RawRow.toVideo() = MediaEntry.Video(
+        id = id,
+        uri = contentUriFor(id, isVideo = true),
+        bucketId = bucketId,
+        dateAdded = dateAdded,
+        durationMs = durationMs,
+    )
 
     private fun contentUriFor(id: Long, isVideo: Boolean): Uri {
         val base = if (isVideo) {
@@ -93,8 +112,12 @@ class MediaRepository(private val context: Context) {
 
     private fun bucketSelection(bucketIdColumn: String, bucketIds: Set<String>?): Pair<String?, Array<String>?> {
         if (bucketIds == null) return null to null
-        val placeholders = bucketIds.joinToString(",") { "?" }
-        return "$bucketIdColumn IN ($placeholders)" to bucketIds.toTypedArray()
+        return inSelection(bucketIdColumn, bucketIds)
+    }
+
+    private fun inSelection(column: String, values: Collection<String>): Pair<String?, Array<String>?> {
+        val placeholders = values.joinToString(",") { "?" }
+        return "$column IN ($placeholders)" to values.toTypedArray()
     }
 
     /**
@@ -105,14 +128,20 @@ class MediaRepository(private val context: Context) {
      * needs every bucket (bucketIds == null there) but a session only ever needs the ones
      * the parent selected.
      */
-    private fun queryImages(bucketIds: Set<String>?): List<RawRow> {
+    private fun queryImages(bucketIds: Set<String>?): List<RawRow> =
+        queryImagesWithSelection(bucketSelection(MediaStore.Images.Media.BUCKET_ID, bucketIds))
+
+    private fun queryImagesByIds(ids: Set<Long>): List<RawRow> =
+        queryImagesWithSelection(inSelection(MediaStore.Images.Media._ID, ids.map { it.toString() }))
+
+    private fun queryImagesWithSelection(selectionPair: Pair<String?, Array<String>?>): List<RawRow> {
         val projection = arrayOf(
             MediaStore.Images.Media._ID,
             MediaStore.Images.Media.BUCKET_ID,
             MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
             MediaStore.Images.Media.DATE_ADDED,
         )
-        val (selection, selectionArgs) = bucketSelection(MediaStore.Images.Media.BUCKET_ID, bucketIds)
+        val (selection, selectionArgs) = selectionPair
         val rows = mutableListOf<RawRow>()
         context.contentResolver.query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -138,7 +167,13 @@ class MediaRepository(private val context: Context) {
         return rows
     }
 
-    private fun queryVideos(bucketIds: Set<String>?): List<RawRow> {
+    private fun queryVideos(bucketIds: Set<String>?): List<RawRow> =
+        queryVideosWithSelection(bucketSelection(MediaStore.Video.Media.BUCKET_ID, bucketIds))
+
+    private fun queryVideosByIds(ids: Set<Long>): List<RawRow> =
+        queryVideosWithSelection(inSelection(MediaStore.Video.Media._ID, ids.map { it.toString() }))
+
+    private fun queryVideosWithSelection(selectionPair: Pair<String?, Array<String>?>): List<RawRow> {
         val projection = arrayOf(
             MediaStore.Video.Media._ID,
             MediaStore.Video.Media.BUCKET_ID,
@@ -146,7 +181,7 @@ class MediaRepository(private val context: Context) {
             MediaStore.Video.Media.DATE_ADDED,
             MediaStore.Video.Media.DURATION,
         )
-        val (selection, selectionArgs) = bucketSelection(MediaStore.Video.Media.BUCKET_ID, bucketIds)
+        val (selection, selectionArgs) = selectionPair
         val rows = mutableListOf<RawRow>()
         context.contentResolver.query(
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI,

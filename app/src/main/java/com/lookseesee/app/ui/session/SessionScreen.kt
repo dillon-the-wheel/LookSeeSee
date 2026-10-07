@@ -104,7 +104,7 @@ fun SessionScreen(
                                     translationY = offset.y,
                                 ),
                         )
-                        is MediaEntry.Video -> VideoPlayerView(item.uri, scale, offset)
+                        is MediaEntry.Video -> VideoPlayerView(item.uri, scale, offset, pause = state.showGrid)
                     }
                 }
             }

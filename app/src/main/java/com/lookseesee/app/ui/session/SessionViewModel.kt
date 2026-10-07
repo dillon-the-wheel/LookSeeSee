@@ -40,7 +40,11 @@ class SessionViewModel(application: Application) : AndroidViewModel(application)
     init {
         viewModelScope.launch {
             val settings = settingsRepository.current()
-            val media = mediaRepository.loadMedia(settings.selectedAlbumIds, settings.mediaTypeFilter)
+            val media = mediaRepository.loadMedia(
+                settings.selectedAlbumIds,
+                settings.selectedMediaKeys,
+                settings.mediaTypeFilter,
+            )
             totalDurationMillis = settings.minutes * 60_000L
             _uiState.update {
                 it.copy(

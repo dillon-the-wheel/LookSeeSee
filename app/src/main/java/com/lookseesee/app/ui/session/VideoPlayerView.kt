@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
@@ -52,7 +53,7 @@ import kotlinx.coroutines.delay
  * ExoPlayer's default controller UI is disabled in favor of this minimal surface.
  */
 @Composable
-fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset) {
+fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset, pause: Boolean = false) {
     val context = LocalContext.current
     val player = remember(uri) {
         ExoPlayer.Builder(context).build().apply {
@@ -78,6 +79,13 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset) {
             delay(1_000)
             controlsVisible = false
         }
+    }
+
+    // Swiping down to open the grid overlay keeps this page composed underneath it,
+    // so without this the video would keep playing (and its audio keep going) while
+    // hidden behind the grid.
+    LaunchedEffect(pause) {
+        if (pause) player.pause()
     }
 
     DisposableEffect(player) {
@@ -163,6 +171,9 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset) {
     }
 
     if (durationMs > 0f) {
+        // A small dot marks the current position rather than a filled bar, so the
+        // scrubber doesn't read as a thick progress indicator obstructing the video.
+        // Active/inactive track share the same faint color for the same reason.
         Slider(
             value = positionMs.coerceIn(0f, durationMs),
             onValueChange = {
@@ -177,12 +188,20 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset) {
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 24.dp)
+                .padding(horizontal = 16.dp, vertical = 40.dp)
                 .semantics { contentDescription = scrubberDescription },
             colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary,
+                thumbColor = Color.White,
+                activeTrackColor = Color.White.copy(alpha = 0.4f),
+                inactiveTrackColor = Color.White.copy(alpha = 0.4f),
             ),
+            thumb = { sliderState ->
+                SliderDefaults.Thumb(
+                    sliderState = sliderState,
+                    colors = SliderDefaults.colors(thumbColor = Color.White),
+                    thumbSize = DpSize(10.dp, 10.dp),
+                )
+            },
         )
     }
 }

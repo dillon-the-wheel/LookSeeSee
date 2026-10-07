@@ -22,18 +22,21 @@ enum class MediaTypeFilter {
 
 data class SessionSettings(
     val selectedAlbumIds: Set<String> = emptySet(),
+    val selectedMediaKeys: Set<String> = emptySet(),
     val minutes: Int = 10,
     val pinHash: String? = null,
     val silenceNotifications: Boolean = false,
     val mediaTypeFilter: MediaTypeFilter = MediaTypeFilter.BOTH,
 ) {
-    val isReadyToBegin: Boolean get() = selectedAlbumIds.isNotEmpty() && pinHash != null
+    val isReadyToBegin: Boolean
+        get() = (selectedAlbumIds.isNotEmpty() || selectedMediaKeys.isNotEmpty()) && pinHash != null
 }
 
 class SettingsRepository(private val context: Context) {
 
     private object Keys {
         val ALBUM_IDS = stringSetPreferencesKey("selected_album_ids")
+        val MEDIA_KEYS = stringSetPreferencesKey("selected_media_keys")
         val MINUTES = intPreferencesKey("minutes")
         val PIN_HASH = stringPreferencesKey("pin_hash")
         val SILENCE_NOTIFICATIONS = booleanPreferencesKey("silence_notifications")
@@ -43,6 +46,7 @@ class SettingsRepository(private val context: Context) {
     val settings: Flow<SessionSettings> = context.dataStore.data.map { prefs ->
         SessionSettings(
             selectedAlbumIds = prefs[Keys.ALBUM_IDS] ?: emptySet(),
+            selectedMediaKeys = prefs[Keys.MEDIA_KEYS] ?: emptySet(),
             minutes = prefs[Keys.MINUTES] ?: 10,
             pinHash = prefs[Keys.PIN_HASH],
             silenceNotifications = prefs[Keys.SILENCE_NOTIFICATIONS] ?: false,
@@ -56,6 +60,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSelectedAlbums(bucketIds: Set<String>) {
         context.dataStore.edit { it[Keys.ALBUM_IDS] = bucketIds }
+    }
+
+    suspend fun setSelectedMediaKeys(keys: Set<String>) {
+        context.dataStore.edit { it[Keys.MEDIA_KEYS] = keys }
     }
 
     suspend fun setMinutes(minutes: Int) {

@@ -23,6 +23,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -60,6 +62,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.lookseesee.app.R
+import com.lookseesee.app.data.MediaPickKey
 import com.lookseesee.app.data.MediaTypeFilter
 import com.lookseesee.app.data.model.Album
 import com.lookseesee.app.util.AppLanguage
@@ -86,6 +89,21 @@ fun SetupScreen(
             Manifest.permission.READ_MEDIA_VIDEO,
         )
         permissionLauncher.launch(permissions)
+    }
+
+    if (state.openAlbum != null || state.viewingPicks) {
+        AlbumDetailScreen(
+            album = state.openAlbum,
+            isPicksView = state.viewingPicks,
+            isWholeAlbumSelected = state.openAlbum?.let { it.bucketId in state.selectedAlbumIds } ?: false,
+            media = state.albumDetailMedia,
+            isLoading = state.isLoadingAlbumDetail,
+            selectedKeys = state.selectedMediaKeys,
+            onToggleWholeAlbum = { state.openAlbum?.let { viewModel.toggleAlbum(it.bucketId) } },
+            onToggleItem = viewModel::toggleMediaPick,
+            onBack = viewModel::closeAlbumDetail,
+        )
+        return
     }
 
     Column(
@@ -131,11 +149,19 @@ fun SetupScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                if (state.selectedMediaKeys.isNotEmpty()) {
+                    PicksTile(
+                        count = state.selectedMediaKeys.size,
+                        thumbnailUri = MediaPickKey.uriFor(state.selectedMediaKeys.first()),
+                        onOpen = viewModel::openPicks,
+                    )
+                }
                 state.albums.forEach { album ->
                     AlbumTile(
                         album = album,
                         selected = album.bucketId in state.selectedAlbumIds,
                         onToggle = { viewModel.toggleAlbum(album.bucketId) },
+                        onBrowse = { viewModel.openAlbum(album) },
                     )
                 }
             }
@@ -290,7 +316,7 @@ private fun PermissionCard(onGrant: () -> Unit) {
 }
 
 @Composable
-private fun AlbumTile(album: Album, selected: Boolean, onToggle: () -> Unit) {
+private fun AlbumTile(album: Album, selected: Boolean, onToggle: () -> Unit, onBrowse: () -> Unit) {
     Box(
         modifier = Modifier
             .width(110.dp)
@@ -333,6 +359,70 @@ private fun AlbumTile(album: Album, selected: Boolean, onToggle: () -> Unit) {
                     .padding(4.dp)
                     .background(Color.White, CircleShape),
             )
+        }
+        // Separate from the whole-tile tap (which toggles the whole album): this small
+        // button drills into the album to hand-pick specific photos/videos within it.
+        IconButton(
+            onClick = onBrowse,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(2.dp)
+                .size(28.dp)
+                .background(Color.Black.copy(alpha = 0.35f), CircleShape),
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = stringResource(R.string.cd_browse_album),
+                tint = Color.White,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PicksTile(count: Int, thumbnailUri: android.net.Uri?, onOpen: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .width(110.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .border(width = 2.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(12.dp))
+            .clickable(onClick = onOpen),
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f),
+            ) {
+                AsyncImage(
+                    model = thumbnailUri,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .background(Color.White, CircleShape)
+                        .padding(2.dp),
+                )
+            }
+            Column(modifier = Modifier.padding(6.dp)) {
+                Text(
+                    text = stringResource(R.string.setup_my_picks),
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                )
+                Text(
+                    text = stringResource(R.string.setup_album_item_count, count),
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
         }
     }
 }

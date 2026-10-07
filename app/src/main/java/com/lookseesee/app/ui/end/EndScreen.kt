@@ -179,8 +179,8 @@ private fun SunsetBackground() {
         // sitting on the horizon rather than floating above it or fully submerged.
         val sunCenter = Offset(size.width / 2f, horizonY - sunRadius * 0.85f)
 
-        // Sun: soft outer halo first, then the sharp core on top, then a lens-flare
-        // cross and a few faint "ghost" circles trailing toward the canvas center.
+        // Sun: soft outer halo first, then the sharp core on top, then a few faint
+        // "ghost" circles trailing toward the canvas center.
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(SunsetGold.copy(alpha = 0.55f), Color.Transparent),
@@ -191,27 +191,6 @@ private fun SunsetBackground() {
             center = sunCenter,
         )
         drawCircle(color = SunsetGold, radius = sunRadius, center = sunCenter)
-
-        val flareColor = Color.White.copy(alpha = 0.5f)
-        val streakThickness = 3.dp.toPx()
-        drawRect(
-            brush = Brush.horizontalGradient(
-                colors = listOf(Color.Transparent, flareColor, Color.Transparent),
-                startX = sunCenter.x - sunRadius * 3f,
-                endX = sunCenter.x + sunRadius * 3f,
-            ),
-            topLeft = Offset(sunCenter.x - sunRadius * 3f, sunCenter.y - streakThickness / 2f),
-            size = Size(sunRadius * 6f, streakThickness),
-        )
-        drawRect(
-            brush = Brush.verticalGradient(
-                colors = listOf(Color.Transparent, flareColor, Color.Transparent),
-                startY = sunCenter.y - sunRadius * 2f,
-                endY = sunCenter.y + sunRadius * 2f,
-            ),
-            topLeft = Offset(sunCenter.x - streakThickness / 2f, sunCenter.y - sunRadius * 2f),
-            size = Size(streakThickness, sunRadius * 4f),
-        )
 
         val canvasCenter = Offset(size.width / 2f, size.height / 2f)
         val flareDirection = canvasCenter - sunCenter
