@@ -12,9 +12,9 @@
     <string name="setup_album_item_count">%1$d items</string>
 
     <string name="setup_section_media_filter">Show</string>
-    <string name="filter_photos_only">Photos Only</string>
-    <string name="filter_videos_only">Videos Only</string>
-    <string name="filter_both">Photos &amp; Videos</string>
+    <string name="filter_photos_only">Photos</string>
+    <string name="filter_videos_only">Videos</string>
+    <string name="filter_both">Both</string>
 
     <string name="setup_section_timer">Session Length</string>
     <string name="setup_minutes_input_label">Minutes</string>
@@ -38,8 +38,8 @@
     <string name="pin_dialog_error">Incorrect PIN</string>
     <string name="pin_dialog_cancel">Cancel</string>
 
-    <!-- End screen (banner text is intentionally shown bilingual together, see end_all_done) -->
-    <string name="end_all_done" translatable="false">All Done 完了</string>
+    <!-- End screen -->
+    <string name="end_all_done">All Done</string>
     <string name="end_sailboat_hint">Hold to play again</string>
     <string name="end_house_hint">Hold to go back</string>
 

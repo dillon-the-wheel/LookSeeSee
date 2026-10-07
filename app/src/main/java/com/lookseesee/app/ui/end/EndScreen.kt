@@ -174,36 +174,10 @@ private fun SunsetBackground() {
 
         val horizonY = size.height * 0.62f
         val sunRadius = size.width * 0.16f
-        val sunCenter = Offset(size.width / 2f, horizonY)
-
-        // Water, drawn before the reflection so the reflection sits on top of it.
-        drawRect(
-            brush = Brush.verticalGradient(
-                colors = listOf(SunsetDusk.copy(alpha = 0.6f), SunsetDusk),
-                startY = horizonY,
-                endY = size.height,
-            ),
-            topLeft = Offset(0f, horizonY),
-            size = Size(size.width, size.height - horizonY),
-        )
-
-        // Diffuse reflection: a soft, flattened radial glow rather than a crisp circle,
-        // the way a real sun's reflection smears across rippling water.
-        val reflectionCenter = Offset(size.width / 2f, horizonY + sunRadius * 1.1f)
-        val reflectionGlow = Brush.radialGradient(
-            colors = listOf(
-                SunsetGold.copy(alpha = 0.45f),
-                SunsetGold.copy(alpha = 0.18f),
-                Color.Transparent,
-            ),
-            center = reflectionCenter,
-            radius = sunRadius * 1.8f,
-        )
-        drawOval(
-            brush = reflectionGlow,
-            topLeft = Offset(reflectionCenter.x - sunRadius * 1.8f, reflectionCenter.y - sunRadius * 0.8f),
-            size = Size(sunRadius * 3.6f, sunRadius * 1.6f),
-        )
+        // Sun sits mostly above the horizon, dipping in by a small fraction of its
+        // radius - the water drawn afterward covers that sliver, so the sun reads as
+        // sitting on the horizon rather than floating above it or fully submerged.
+        val sunCenter = Offset(size.width / 2f, horizonY - sunRadius * 0.85f)
 
         // Sun: soft outer halo first, then the sharp core on top, then a lens-flare
         // cross and a few faint "ghost" circles trailing toward the canvas center.
@@ -251,5 +225,19 @@ private fun SunsetBackground() {
                 center = ghostCenter,
             )
         }
+
+        // Water, drawn last so it sits in front of the sun and covers the small part
+        // of it that dips below the horizon. The reflection is a horizontal gradient
+        // across the water itself - bright where it's directly under the sun, fading
+        // to plain ocean color at the left and right edges.
+        drawRect(
+            brush = Brush.horizontalGradient(
+                colors = listOf(SunsetDusk, SunsetGold.copy(alpha = 0.85f), SunsetDusk),
+                startX = 0f,
+                endX = size.width,
+            ),
+            topLeft = Offset(0f, horizonY),
+            size = Size(size.width, size.height - horizonY),
+        )
     }
 }

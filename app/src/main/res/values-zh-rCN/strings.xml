@@ -8,9 +8,9 @@
     <string name="setup_album_item_count">%1$d 个项目</string>
 
     <string name="setup_section_media_filter">显示</string>
-    <string name="filter_photos_only">仅照片</string>
-    <string name="filter_videos_only">仅视频</string>
-    <string name="filter_both">照片和视频</string>
+    <string name="filter_photos_only">照片</string>
+    <string name="filter_videos_only">视频</string>
+    <string name="filter_both">全部</string>
 
     <string name="setup_section_timer">时长设置</string>
     <string name="setup_minutes_input_label">分钟</string>
@@ -33,6 +33,7 @@
     <string name="pin_dialog_error">密码错误</string>
     <string name="pin_dialog_cancel">取消</string>
 
+    <string name="end_all_done">完了</string>
     <string name="end_sailboat_hint">长按再玩一次</string>
     <string name="end_house_hint">长按返回</string>
 

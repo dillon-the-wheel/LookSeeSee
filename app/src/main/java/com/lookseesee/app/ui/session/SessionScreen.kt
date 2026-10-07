@@ -16,7 +16,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -114,6 +117,17 @@ fun SessionScreen(
             )
         }
 
+        Text(
+            text = formatRemainingTime(state.remainingMillis),
+            color = Color.White,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+                .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+        )
+
         // Invisible bottom-right hotspot: 5 quick taps in a row skips straight to the end
         // screen, so a toddler's single stray tap while swiping can't trigger it by accident.
         var tapCount by remember { mutableIntStateOf(0) }
@@ -164,4 +178,11 @@ private fun GridOverlay(mediaList: List<MediaEntry>, onSelect: (Int) -> Unit) {
             }
         }
     }
+}
+
+private fun formatRemainingTime(millis: Long): String {
+    val totalSeconds = (millis / 1000).coerceAtLeast(0)
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "%d:%02d".format(minutes, seconds)
 }

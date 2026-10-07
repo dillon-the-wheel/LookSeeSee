@@ -24,6 +24,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -65,7 +66,19 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset) {
     var positionMs by remember(uri) { mutableFloatStateOf(0f) }
     var durationMs by remember(uri) { mutableFloatStateOf(0f) }
     var isScrubbing by remember(uri) { mutableStateOf(false) }
+    var controlsVisible by remember(uri) { mutableStateOf(true) }
+    var revealToken by remember(uri) { mutableIntStateOf(0) }
     val scrubberDescription = stringResource(R.string.cd_scrubber)
+
+    // Only the first tap (and every tap after) starts the auto-hide countdown - the
+    // initial play invitation stays on screen until someone actually presses it.
+    LaunchedEffect(revealToken) {
+        if (revealToken > 0) {
+            controlsVisible = true
+            delay(1_000)
+            controlsVisible = false
+        }
+    }
 
     DisposableEffect(player) {
         val listener = object : Player.Listener {
@@ -112,30 +125,40 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset) {
             ),
     )
 
-    // Size is fixed before clickable so the tappable area matches the full visible
-    // circle - previously clickable was applied before the circle's size was set by
-    // padding, shrinking the real hit target down to just the icon's own bounds.
+    // The clickable zone always stays put (size fixed before clickable, so the tap
+    // target matches the full circle rather than just the icon's own bounds), but the
+    // visible circle - background and icon/spinner together - only renders while
+    // controlsVisible (or while buffering, which always stays visible as a loading cue).
     Box(
         modifier = Modifier
             .align(Alignment.Center)
-            .background(Color.Black.copy(alpha = 0.45f), CircleShape)
             .size(64.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
             ) {
                 if (isPlaying) player.pause() else player.play()
+                revealToken++
             },
         contentAlignment = Alignment.Center,
     ) {
-        if (isBuffering) {
-            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(28.dp))
-        } else {
-            Icon(
-                imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                contentDescription = stringResource(R.string.cd_play_button),
-                tint = Color.White,
-            )
+        if (isBuffering || controlsVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.45f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isBuffering) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(28.dp))
+                } else {
+                    Icon(
+                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = stringResource(R.string.cd_play_button),
+                        tint = Color.White,
+                    )
+                }
+            }
         }
     }
 
