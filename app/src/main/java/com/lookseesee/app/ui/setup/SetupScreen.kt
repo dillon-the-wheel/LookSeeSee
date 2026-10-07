@@ -23,13 +23,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -50,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -57,6 +60,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.lookseesee.app.R
+import com.lookseesee.app.data.MediaTypeFilter
 import com.lookseesee.app.data.model.Album
 import com.lookseesee.app.util.AppLanguage
 
@@ -138,18 +142,22 @@ fun SetupScreen(
         }
 
         Text(
+            text = stringResource(R.string.setup_section_media_filter),
+            style = MaterialTheme.typography.titleLarge,
+        )
+        MediaTypeFilterToggle(
+            filter = state.mediaTypeFilter,
+            onFilterChange = viewModel::setMediaTypeFilter,
+        )
+
+        Text(
             text = stringResource(R.string.setup_section_timer),
             style = MaterialTheme.typography.titleLarge,
         )
-        Column {
-            Text(stringResource(R.string.setup_minutes_label, state.minutes))
-            Slider(
-                value = state.minutes.toFloat(),
-                onValueChange = { viewModel.setMinutes(it.toInt()) },
-                valueRange = 1f..60f,
-                steps = 58,
-            )
-        }
+        MinutesInput(
+            minutes = state.minutes,
+            onMinutesChange = viewModel::setMinutes,
+        )
 
         Text(
             text = stringResource(R.string.setup_section_pin),
@@ -157,9 +165,7 @@ fun SetupScreen(
         )
         PinSetupSection(
             hasPin = state.hasPin,
-            pinMismatch = state.pinMismatch,
-            onSubmit = { pin, confirm -> viewModel.submitNewPin(pin, confirm) },
-            onEditedAgain = viewModel::clearPinMismatch,
+            onSubmit = viewModel::submitPin,
         )
 
         Text(
@@ -229,6 +235,48 @@ private fun LanguageToggle(language: AppLanguage, onLanguageChange: (AppLanguage
 }
 
 @Composable
+private fun MediaTypeFilterToggle(filter: MediaTypeFilter, onFilterChange: (MediaTypeFilter) -> Unit) {
+    SingleChoiceSegmentedButtonRow {
+        SegmentedButton(
+            selected = filter == MediaTypeFilter.PHOTOS,
+            onClick = { onFilterChange(MediaTypeFilter.PHOTOS) },
+            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
+        ) { Text(stringResource(R.string.filter_photos_only)) }
+        SegmentedButton(
+            selected = filter == MediaTypeFilter.VIDEOS,
+            onClick = { onFilterChange(MediaTypeFilter.VIDEOS) },
+            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
+        ) { Text(stringResource(R.string.filter_videos_only)) }
+        SegmentedButton(
+            selected = filter == MediaTypeFilter.BOTH,
+            onClick = { onFilterChange(MediaTypeFilter.BOTH) },
+            shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
+        ) { Text(stringResource(R.string.filter_both)) }
+    }
+}
+
+@Composable
+private fun MinutesInput(minutes: Int, onMinutesChange: (Int) -> Unit) {
+    var text by remember { mutableStateOf(minutes.toString()) }
+    OutlinedTextField(
+        value = text,
+        onValueChange = { new ->
+            if (new.length <= 3 && new.all { it.isDigit() }) {
+                text = new
+                val parsed = new.toIntOrNull()
+                if (parsed != null && parsed > 0) {
+                    onMinutesChange(parsed)
+                }
+            }
+        },
+        label = { Text(stringResource(R.string.setup_minutes_input_label)) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.width(140.dp),
+    )
+}
+
+@Composable
 private fun PermissionCard(onGrant: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -292,58 +340,41 @@ private fun AlbumTile(album: Album, selected: Boolean, onToggle: () -> Unit) {
 @Composable
 private fun PinSetupSection(
     hasPin: Boolean,
-    pinMismatch: Boolean,
-    onSubmit: (String, String) -> Boolean,
-    onEditedAgain: () -> Unit,
+    onSubmit: (String) -> Unit,
 ) {
     var pin by remember { mutableStateOf("") }
-    var confirmPin by remember { mutableStateOf("") }
+    var showPin by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (hasPin && pin.isEmpty() && confirmPin.isEmpty()) {
+        if (hasPin && pin.isEmpty()) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Filled.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Text(stringResource(R.string.setup_section_pin))
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedTextField(
-                value = pin,
-                onValueChange = { new ->
-                    if (new.length <= 4 && new.all { it.isDigit() }) {
-                        pin = new
-                        onEditedAgain()
-                    }
-                },
-                label = { Text(stringResource(R.string.setup_pin_hint)) },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                modifier = Modifier.weight(1f),
-            )
-            OutlinedTextField(
-                value = confirmPin,
-                onValueChange = { new ->
-                    if (new.length <= 4 && new.all { it.isDigit() }) {
-                        confirmPin = new
-                        onEditedAgain()
-                        if (pin.length == 4 && new.length == 4) {
-                            onSubmit(pin, new)
-                        }
-                    }
-                },
-                label = { Text(stringResource(R.string.setup_pin_confirm_hint)) },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                modifier = Modifier.weight(1f),
-            )
-        }
-        if (pinMismatch) {
-            Text(
-                text = stringResource(R.string.setup_pin_mismatch),
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
+        OutlinedTextField(
+            value = pin,
+            onValueChange = { new ->
+                if (new.length <= 4 && new.all { it.isDigit() }) {
+                    pin = new
+                    if (new.length == 4) onSubmit(new)
+                }
+            },
+            label = { Text(stringResource(R.string.setup_pin_hint)) },
+            singleLine = true,
+            visualTransformation = if (showPin) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            trailingIcon = {
+                IconButton(onClick = { showPin = !showPin }) {
+                    Icon(
+                        imageVector = if (showPin) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                        contentDescription = stringResource(
+                            if (showPin) R.string.cd_hide_pin else R.string.cd_show_pin,
+                        ),
+                    )
+                }
+            },
+            modifier = Modifier.width(200.dp),
+        )
     }
 }

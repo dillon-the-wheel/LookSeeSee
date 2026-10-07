@@ -3,18 +3,22 @@ package com.lookseesee.app.ui.session
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -57,6 +61,7 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset) {
     }
 
     var isPlaying by remember(uri) { mutableStateOf(false) }
+    var isBuffering by remember(uri) { mutableStateOf(true) }
     var positionMs by remember(uri) { mutableFloatStateOf(0f) }
     var durationMs by remember(uri) { mutableFloatStateOf(0f) }
     var isScrubbing by remember(uri) { mutableStateOf(false) }
@@ -66,6 +71,10 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset) {
         val listener = object : Player.Listener {
             override fun onIsPlayingChanged(playing: Boolean) {
                 isPlaying = playing
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                isBuffering = playbackState == Player.STATE_BUFFERING
             }
         }
         player.addListener(listener)
@@ -103,21 +112,31 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset) {
             ),
     )
 
+    // Size is fixed before clickable so the tappable area matches the full visible
+    // circle - previously clickable was applied before the circle's size was set by
+    // padding, shrinking the real hit target down to just the icon's own bounds.
     Box(
         modifier = Modifier
             .align(Alignment.Center)
-            .clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null) {
-                if (isPlaying) player.pause() else player.play()
-            }
             .background(Color.Black.copy(alpha = 0.45f), CircleShape)
-            .padding(20.dp),
+            .size(64.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+            ) {
+                if (isPlaying) player.pause() else player.play()
+            },
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-            contentDescription = stringResource(R.string.cd_play_button),
-            tint = Color.White,
-            modifier = Modifier.padding(4.dp),
-        )
+        if (isBuffering) {
+            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(28.dp))
+        } else {
+            Icon(
+                imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                contentDescription = stringResource(R.string.cd_play_button),
+                tint = Color.White,
+            )
+        }
     }
 
     if (durationMs > 0f) {
@@ -137,7 +156,7 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset) {
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 24.dp)
                 .semantics { contentDescription = scrubberDescription },
-            colors = androidx.compose.material3.SliderDefaults.colors(
+            colors = SliderDefaults.colors(
                 thumbColor = MaterialTheme.colorScheme.primary,
                 activeTrackColor = MaterialTheme.colorScheme.primary,
             ),

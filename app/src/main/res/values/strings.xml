@@ -11,13 +11,16 @@
     <string name="setup_albums_empty">No albums found on this device yet.</string>
     <string name="setup_album_item_count">%1$d items</string>
 
+    <string name="setup_section_media_filter">Show</string>
+    <string name="filter_photos_only">Photos Only</string>
+    <string name="filter_videos_only">Videos Only</string>
+    <string name="filter_both">Photos &amp; Videos</string>
+
     <string name="setup_section_timer">Session Length</string>
-    <string name="setup_minutes_label">%1$d minutes</string>
+    <string name="setup_minutes_input_label">Minutes</string>
 
     <string name="setup_section_pin">Set a PIN</string>
     <string name="setup_pin_hint">Enter a 4-digit PIN</string>
-    <string name="setup_pin_confirm_hint">Confirm PIN</string>
-    <string name="setup_pin_mismatch">PINs don\'t match. Try again.</string>
 
     <string name="setup_section_interrupts">Calls &amp; Texts</string>
     <string name="setup_interrupts_toggle">Silence notifications during play</string>
@@ -46,4 +49,6 @@
     <string name="cd_grid_thumbnail">Photo or video thumbnail</string>
     <string name="cd_sailboat_icon">Play again</string>
     <string name="cd_house_icon">Back to setup</string>
+    <string name="cd_show_pin">Show PIN</string>
+    <string name="cd_hide_pin">Hide PIN</string>
 </resources>

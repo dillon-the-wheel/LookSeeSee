@@ -24,7 +24,7 @@ OUTPUT_PATH = os.path.join(
 )
 
 SAMPLE_RATE = 44100
-BPM = 88
+BPM = 132  # 88 * 1.5 - played 1.5x faster per user feedback
 BEAT = 60.0 / BPM  # seconds per quarter note
 
 # Key of G major: scale degree -> semitones above G4 (392.00 Hz)

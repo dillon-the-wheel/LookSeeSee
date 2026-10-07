@@ -1,9 +1,13 @@
 package com.lookseesee.app.ui.setup
 
+import android.Manifest
 import android.app.Application
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.lookseesee.app.data.MediaRepository
+import com.lookseesee.app.data.MediaTypeFilter
 import com.lookseesee.app.data.SettingsRepository
 import com.lookseesee.app.data.model.Album
 import com.lookseesee.app.util.AppLanguage
@@ -18,8 +22,8 @@ data class SetupUiState(
     val selectedAlbumIds: Set<String> = emptySet(),
     val minutes: Int = 10,
     val hasPin: Boolean = false,
-    val pinMismatch: Boolean = false,
     val silenceNotifications: Boolean = false,
+    val mediaTypeFilter: MediaTypeFilter = MediaTypeFilter.BOTH,
     val language: AppLanguage = AppLanguage.ENGLISH,
     val hasMediaPermission: Boolean = false,
     val isLoadingAlbums: Boolean = false,
@@ -43,11 +47,24 @@ class SetupViewModel(application: Application) : AndroidViewModel(application) {
                         minutes = settings.minutes,
                         hasPin = settings.pinHash != null,
                         silenceNotifications = settings.silenceNotifications,
+                        mediaTypeFilter = settings.mediaTypeFilter,
                         readyToBegin = settings.isReadyToBegin,
                     )
                 }
             }
         }
+        checkMediaPermission()
+    }
+
+    /** Checks the real Android permission state so a previous grant is remembered across launches. */
+    private fun checkMediaPermission() {
+        val context = getApplication<Application>()
+        val granted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_MEDIA_IMAGES,
+        ) == PackageManager.PERMISSION_GRANTED
+        _uiState.update { it.copy(hasMediaPermission = granted) }
+        if (granted) refreshAlbums()
     }
 
     fun onMediaPermissionResult(granted: Boolean) {
@@ -77,23 +94,17 @@ class SetupViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { settingsRepository.setSilenceNotifications(enabled) }
     }
 
+    fun setMediaTypeFilter(filter: MediaTypeFilter) {
+        viewModelScope.launch { settingsRepository.setMediaTypeFilter(filter) }
+    }
+
     fun setLanguage(language: AppLanguage) {
         LocaleManager.apply(language)
         _uiState.update { it.copy(language = language) }
     }
 
-    /** Returns true and persists the PIN if [pin] and [confirmPin] match; otherwise flags a mismatch. */
-    fun submitNewPin(pin: String, confirmPin: String): Boolean {
-        if (pin.length < 4 || pin != confirmPin) {
-            _uiState.update { it.copy(pinMismatch = true) }
-            return false
-        }
-        _uiState.update { it.copy(pinMismatch = false) }
+    fun submitPin(pin: String) {
+        if (pin.length != 4) return
         viewModelScope.launch { settingsRepository.setPin(pin) }
-        return true
-    }
-
-    fun clearPinMismatch() {
-        _uiState.update { it.copy(pinMismatch = false) }
     }
 }

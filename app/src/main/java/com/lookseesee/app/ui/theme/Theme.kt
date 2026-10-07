@@ -1,34 +1,41 @@
 package com.lookseesee.app.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-val AppPrimary = Color(0xFF3B6FB6)
-val AppPrimaryDark = Color(0xFF26507F)
-val AppBackground = Color(0xFFF5F7FA)
+// Warm manila/brown palette for the setup and session chrome. Deliberately a single
+// fixed scheme rather than following system light/dark mode - a kiosk app benefits
+// from one consistent look rather than one that silently changes on the parent's phone.
+val ManilaBackground = Color(0xFFFBEFD1)
+val ManilaSurface = Color(0xFFF2DFAE)
+val BrownText = Color(0xFF5C4033)
+val BrownPrimary = Color(0xFF8B5E34)
+val BrownPrimaryDark = Color(0xFF6B4423)
+val CreamOnPrimary = Color(0xFFFFFBF0)
+
 val SunsetDusk = Color(0xFF2B1B3D)
 val SunsetOrange = Color(0xFFFF8A5B)
 val SunsetPink = Color(0xFFFFC6A8)
 val SunsetGold = Color(0xFFFFD37A)
 
-private val LightColors = lightColorScheme(
-    primary = AppPrimary,
-    secondary = AppPrimaryDark,
-    background = AppBackground,
-)
-
-private val DarkColors = darkColorScheme(
-    primary = AppPrimary,
-    secondary = AppPrimaryDark,
-    background = SunsetDusk,
+private val AppColors = lightColorScheme(
+    primary = BrownPrimary,
+    onPrimary = CreamOnPrimary,
+    secondary = BrownPrimaryDark,
+    onSecondary = CreamOnPrimary,
+    background = ManilaBackground,
+    onBackground = BrownText,
+    surface = ManilaSurface,
+    onSurface = BrownText,
+    surfaceVariant = ManilaSurface,
+    onSurfaceVariant = BrownText,
+    outline = BrownPrimaryDark,
+    outlineVariant = BrownPrimary,
 )
 
 @Composable
 fun LookSeeSeeTheme(content: @Composable () -> Unit) {
-    val colors = if (isSystemInDarkTheme()) DarkColors else LightColors
-    MaterialTheme(colorScheme = colors, content = content)
+    MaterialTheme(colorScheme = AppColors, content = content)
 }

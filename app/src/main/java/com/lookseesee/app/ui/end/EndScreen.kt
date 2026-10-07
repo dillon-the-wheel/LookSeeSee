@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -173,13 +174,9 @@ private fun SunsetBackground() {
 
         val horizonY = size.height * 0.62f
         val sunRadius = size.width * 0.16f
-        drawCircle(
-            color = SunsetGold,
-            radius = sunRadius,
-            center = Offset(size.width / 2f, horizonY),
-        )
+        val sunCenter = Offset(size.width / 2f, horizonY)
 
-        // Water with a soft reflection band beneath the horizon.
+        // Water, drawn before the reflection so the reflection sits on top of it.
         drawRect(
             brush = Brush.verticalGradient(
                 colors = listOf(SunsetDusk.copy(alpha = 0.6f), SunsetDusk),
@@ -187,12 +184,72 @@ private fun SunsetBackground() {
                 endY = size.height,
             ),
             topLeft = Offset(0f, horizonY),
-            size = androidx.compose.ui.geometry.Size(size.width, size.height - horizonY),
+            size = Size(size.width, size.height - horizonY),
         )
+
+        // Diffuse reflection: a soft, flattened radial glow rather than a crisp circle,
+        // the way a real sun's reflection smears across rippling water.
+        val reflectionCenter = Offset(size.width / 2f, horizonY + sunRadius * 1.1f)
+        val reflectionGlow = Brush.radialGradient(
+            colors = listOf(
+                SunsetGold.copy(alpha = 0.45f),
+                SunsetGold.copy(alpha = 0.18f),
+                Color.Transparent,
+            ),
+            center = reflectionCenter,
+            radius = sunRadius * 1.8f,
+        )
+        drawOval(
+            brush = reflectionGlow,
+            topLeft = Offset(reflectionCenter.x - sunRadius * 1.8f, reflectionCenter.y - sunRadius * 0.8f),
+            size = Size(sunRadius * 3.6f, sunRadius * 1.6f),
+        )
+
+        // Sun: soft outer halo first, then the sharp core on top, then a lens-flare
+        // cross and a few faint "ghost" circles trailing toward the canvas center.
         drawCircle(
-            color = SunsetGold.copy(alpha = 0.35f),
-            radius = sunRadius,
-            center = Offset(size.width / 2f, horizonY + sunRadius * 0.4f),
+            brush = Brush.radialGradient(
+                colors = listOf(SunsetGold.copy(alpha = 0.55f), Color.Transparent),
+                center = sunCenter,
+                radius = sunRadius * 2.2f,
+            ),
+            radius = sunRadius * 2.2f,
+            center = sunCenter,
         )
+        drawCircle(color = SunsetGold, radius = sunRadius, center = sunCenter)
+
+        val flareColor = Color.White.copy(alpha = 0.5f)
+        val streakThickness = 3.dp.toPx()
+        drawRect(
+            brush = Brush.horizontalGradient(
+                colors = listOf(Color.Transparent, flareColor, Color.Transparent),
+                startX = sunCenter.x - sunRadius * 3f,
+                endX = sunCenter.x + sunRadius * 3f,
+            ),
+            topLeft = Offset(sunCenter.x - sunRadius * 3f, sunCenter.y - streakThickness / 2f),
+            size = Size(sunRadius * 6f, streakThickness),
+        )
+        drawRect(
+            brush = Brush.verticalGradient(
+                colors = listOf(Color.Transparent, flareColor, Color.Transparent),
+                startY = sunCenter.y - sunRadius * 2f,
+                endY = sunCenter.y + sunRadius * 2f,
+            ),
+            topLeft = Offset(sunCenter.x - streakThickness / 2f, sunCenter.y - sunRadius * 2f),
+            size = Size(streakThickness, sunRadius * 4f),
+        )
+
+        val canvasCenter = Offset(size.width / 2f, size.height / 2f)
+        val flareDirection = canvasCenter - sunCenter
+        for (i in 1..3) {
+            val t = i * 0.35f
+            val ghostCenter = sunCenter + flareDirection * t
+            val ghostRadius = (sunRadius * (0.35f - i * 0.08f)).coerceAtLeast(2f)
+            drawCircle(
+                color = SunsetGold.copy(alpha = 0.25f / i),
+                radius = ghostRadius,
+                center = ghostCenter,
+            )
+        }
     }
 }

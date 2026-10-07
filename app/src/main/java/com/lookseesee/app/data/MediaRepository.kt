@@ -46,31 +46,42 @@ class MediaRepository(private val context: Context) {
             .map { (album, _) -> album }
     }
 
-    suspend fun loadMedia(bucketIds: Set<String>): List<MediaEntry> = withContext(Dispatchers.IO) {
+    suspend fun loadMedia(
+        bucketIds: Set<String>,
+        filter: MediaTypeFilter = MediaTypeFilter.BOTH,
+    ): List<MediaEntry> = withContext(Dispatchers.IO) {
         if (bucketIds.isEmpty()) return@withContext emptyList()
 
-        val photos = queryImages()
-            .filter { it.bucketId in bucketIds }
-            .map { row ->
-                MediaEntry.Photo(
-                    id = row.id,
-                    uri = contentUriFor(row.id, isVideo = false),
-                    bucketId = row.bucketId,
-                    dateAdded = row.dateAdded,
-                )
-            }
-        val videos = queryVideos()
-            .filter { it.bucketId in bucketIds }
-            .map { row ->
-                MediaEntry.Video(
-                    id = row.id,
-                    uri = contentUriFor(row.id, isVideo = true),
-                    bucketId = row.bucketId,
-                    dateAdded = row.dateAdded,
-                    durationMs = row.durationMs,
-                )
-            }
-        (photos + videos).sortedBy { it.dateAdded }
+        val photos = if (filter == MediaTypeFilter.VIDEOS) {
+            emptyList()
+        } else {
+            queryImages()
+                .filter { it.bucketId in bucketIds }
+                .map { row ->
+                    MediaEntry.Photo(
+                        id = row.id,
+                        uri = contentUriFor(row.id, isVideo = false),
+                        bucketId = row.bucketId,
+                        dateAdded = row.dateAdded,
+                    )
+                }
+        }
+        val videos = if (filter == MediaTypeFilter.PHOTOS) {
+            emptyList()
+        } else {
+            queryVideos()
+                .filter { it.bucketId in bucketIds }
+                .map { row ->
+                    MediaEntry.Video(
+                        id = row.id,
+                        uri = contentUriFor(row.id, isVideo = true),
+                        bucketId = row.bucketId,
+                        dateAdded = row.dateAdded,
+                        durationMs = row.durationMs,
+                    )
+                }
+        }
+        (photos + videos).sortedByDescending { it.dateAdded }
     }
 
     private fun contentUriFor(id: Long, isVideo: Boolean): Uri {

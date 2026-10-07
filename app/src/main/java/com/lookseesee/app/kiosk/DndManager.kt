@@ -7,10 +7,10 @@ import android.provider.Settings
 
 /**
  * Optional "silence notifications during play" setting. When enabled and granted,
- * this puts the phone into Priority DND with calls (but not messages) allowed
- * through, so texts stay quiet while a phone call can still ring. Calls always
- * get through regardless of this setting or whether access is granted; this
- * manager only ever affects non-call notifications.
+ * this puts the phone into Priority DND with calls and media playback sound allowed
+ * through, but pop-ups, notifications, and alert tones suppressed. Calls always get
+ * through regardless of this setting or whether access is granted; this manager only
+ * ever affects non-call notifications and never mutes the video/audio the viewer hears.
  */
 class DndManager(private val context: Context) {
 
@@ -25,7 +25,8 @@ class DndManager(private val context: Context) {
         if (!hasAccess()) return
         notificationManager.notificationPolicy = NotificationManager.Policy(
             NotificationManager.Policy.PRIORITY_CATEGORY_CALLS or
-                NotificationManager.Policy.PRIORITY_CATEGORY_REPEAT_CALLERS,
+                NotificationManager.Policy.PRIORITY_CATEGORY_REPEAT_CALLERS or
+                NotificationManager.Policy.PRIORITY_CATEGORY_MEDIA,
             NotificationManager.Policy.PRIORITY_SENDERS_ANY,
             NotificationManager.Policy.PRIORITY_SENDERS_ANY,
         )

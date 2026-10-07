@@ -23,6 +23,7 @@ import kotlin.math.abs
 
 private const val MAX_SCALE = 4f
 private val SWIPE_THRESHOLD_DP = 96.dp
+private val TOUCH_SLOP_DP = 8.dp
 
 /**
  * Hosts a single photo/video page with pinch-to-zoom. While unzoomed (scale == 1),
@@ -47,6 +48,7 @@ fun ZoomableMediaPage(
     var boxSize by remember(pageKey) { mutableStateOf(IntSize.Zero) }
     val density = LocalDensity.current
     val swipeThresholdPx = with(density) { SWIPE_THRESHOLD_DP.toPx() }
+    val touchSlopPx = with(density) { TOUCH_SLOP_DP.toPx() }
 
     Box(
         modifier = modifier
@@ -57,11 +59,34 @@ fun ZoomableMediaPage(
                     var localScale = scale
                     var localOffset = offset
                     var overflow = Offset.Zero
+                    var hasExceededSlop = false
+                    var pendingPan = Offset.Zero
 
                     do {
                         val event = awaitPointerEvent()
-                        val zoomChange = event.calculateZoom()
-                        val panChange = event.calculatePan()
+                        val rawZoomChange = event.calculateZoom()
+                        val rawPanChange = event.calculatePan()
+
+                        val zoomChange: Float
+                        val panChange: Offset
+                        if (hasExceededSlop) {
+                            zoomChange = rawZoomChange
+                            panChange = rawPanChange
+                        } else {
+                            pendingPan += rawPanChange
+                            val zoomDelta = abs(rawZoomChange - 1f)
+                            if (zoomDelta > 0.01f || abs(pendingPan.x) > touchSlopPx || abs(pendingPan.y) > touchSlopPx) {
+                                hasExceededSlop = true
+                                zoomChange = rawZoomChange
+                                panChange = pendingPan
+                            } else {
+                                // Movement is still within touch slop: don't consume the event at
+                                // all, so a genuine tap (e.g. a video's play button) underneath
+                                // still receives it cleanly instead of this gesture eating it.
+                                zoomChange = 1f
+                                panChange = Offset.Zero
+                            }
+                        }
 
                         if (zoomChange != 1f || panChange != Offset.Zero) {
                             val newScale = (localScale * zoomChange).coerceIn(1f, MAX_SCALE)

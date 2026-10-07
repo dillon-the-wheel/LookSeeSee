@@ -14,11 +14,18 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "look_see_see_settings")
 
+enum class MediaTypeFilter {
+    PHOTOS,
+    VIDEOS,
+    BOTH,
+}
+
 data class SessionSettings(
     val selectedAlbumIds: Set<String> = emptySet(),
     val minutes: Int = 10,
     val pinHash: String? = null,
     val silenceNotifications: Boolean = false,
+    val mediaTypeFilter: MediaTypeFilter = MediaTypeFilter.BOTH,
 ) {
     val isReadyToBegin: Boolean get() = selectedAlbumIds.isNotEmpty() && pinHash != null
 }
@@ -30,6 +37,7 @@ class SettingsRepository(private val context: Context) {
         val MINUTES = intPreferencesKey("minutes")
         val PIN_HASH = stringPreferencesKey("pin_hash")
         val SILENCE_NOTIFICATIONS = booleanPreferencesKey("silence_notifications")
+        val MEDIA_TYPE_FILTER = stringPreferencesKey("media_type_filter")
     }
 
     val settings: Flow<SessionSettings> = context.dataStore.data.map { prefs ->
@@ -38,6 +46,9 @@ class SettingsRepository(private val context: Context) {
             minutes = prefs[Keys.MINUTES] ?: 10,
             pinHash = prefs[Keys.PIN_HASH],
             silenceNotifications = prefs[Keys.SILENCE_NOTIFICATIONS] ?: false,
+            mediaTypeFilter = prefs[Keys.MEDIA_TYPE_FILTER]?.let { name ->
+                runCatching { MediaTypeFilter.valueOf(name) }.getOrDefault(MediaTypeFilter.BOTH)
+            } ?: MediaTypeFilter.BOTH,
         )
     }
 
@@ -57,6 +68,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSilenceNotifications(enabled: Boolean) {
         context.dataStore.edit { it[Keys.SILENCE_NOTIFICATIONS] = enabled }
+    }
+
+    suspend fun setMediaTypeFilter(filter: MediaTypeFilter) {
+        context.dataStore.edit { it[Keys.MEDIA_TYPE_FILTER] = filter.name }
     }
 
     suspend fun verifyPin(candidate: String): Boolean {

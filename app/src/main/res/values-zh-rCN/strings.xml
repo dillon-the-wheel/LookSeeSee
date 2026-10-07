@@ -7,13 +7,16 @@
     <string name="setup_albums_empty">此设备上还没有找到相册。</string>
     <string name="setup_album_item_count">%1$d 个项目</string>
 
+    <string name="setup_section_media_filter">显示</string>
+    <string name="filter_photos_only">仅照片</string>
+    <string name="filter_videos_only">仅视频</string>
+    <string name="filter_both">照片和视频</string>
+
     <string name="setup_section_timer">时长设置</string>
-    <string name="setup_minutes_label">%1$d 分钟</string>
+    <string name="setup_minutes_input_label">分钟</string>
 
     <string name="setup_section_pin">设置密码</string>
     <string name="setup_pin_hint">输入4位数密码</string>
-    <string name="setup_pin_confirm_hint">确认密码</string>
-    <string name="setup_pin_mismatch">密码不一致，请重试。</string>
 
     <string name="setup_section_interrupts">来电与短信</string>
     <string name="setup_interrupts_toggle">播放时静音通知</string>
@@ -38,4 +41,6 @@
     <string name="cd_grid_thumbnail">照片或视频缩略图</string>
     <string name="cd_sailboat_icon">再玩一次</string>
     <string name="cd_house_icon">返回设置</string>
+    <string name="cd_show_pin">显示密码</string>
+    <string name="cd_hide_pin">隐藏密码</string>
 </resources>
