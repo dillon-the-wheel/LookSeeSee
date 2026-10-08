@@ -23,10 +23,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,6 +41,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -106,6 +109,11 @@ fun SetupScreen(
         return
     }
 
+    var showHelp by remember { mutableStateOf(false) }
+    if (showHelp) {
+        HelpDialog(onDismiss = { showHelp = false })
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -123,10 +131,18 @@ fun SetupScreen(
                 text = stringResource(R.string.setup_title),
                 style = MaterialTheme.typography.headlineMedium,
             )
-            LanguageToggle(
-                language = state.language,
-                onLanguageChange = viewModel::setLanguage,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { showHelp = true }) {
+                    Icon(
+                        imageVector = Icons.Filled.HelpOutline,
+                        contentDescription = stringResource(R.string.cd_help_button),
+                    )
+                }
+                LanguageToggle(
+                    language = state.language,
+                    onLanguageChange = viewModel::setLanguage,
+                )
+            }
         }
 
         if (!state.hasMediaPermission) {
@@ -462,5 +478,19 @@ private fun PinSetupSection(
             }
         },
         modifier = Modifier.width(200.dp),
+    )
+}
+
+@Composable
+private fun HelpDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.help_dialog_title)) },
+        text = { Text(stringResource(R.string.help_dialog_body)) },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.help_dialog_close))
+            }
+        },
     )
 }

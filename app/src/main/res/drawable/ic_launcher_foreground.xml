@@ -1,20 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Simple original "eye" mark: outer almond shape + iris + highlight -->
+    <!-- Soft halo behind the sun -->
+    <path android:pathData="M54,46m-30,0a30,30 0,1 1,60 0a30,30 0,1 1,-60 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="54"
+                android:centerY="46"
+                android:gradientRadius="30">
+                <item android:offset="0" android:color="#8CFFD37A" />
+                <item android:offset="1" android:color="#00FFD37A" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- The sun -->
     <path
-        android:pathData="M20,54 C33,34 75,34 88,54 C75,74 33,74 20,54 Z"
-        android:fillColor="#FFFFFF" />
-    <path
-        android:pathData="M54,54m-14,0a14,14 0,1 1,28 0a14,14 0,1 1,-28 0"
+        android:pathData="M54,46m-19,0a19,19 0,1 1,38 0a19,19 0,1 1,-38 0"
         android:fillColor="#FFD37A" />
+
+    <!-- Water, with the sun's reflection as a horizontal gradient -->
+    <path android:pathData="M0,62h108v46h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="62"
+                android:endX="108"
+                android:endY="62">
+                <item android:offset="0" android:color="#2B1B3D" />
+                <item android:offset="0.5" android:color="#D9FFD37A" />
+                <item android:offset="1" android:color="#2B1B3D" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Gentle wave ripples across the water's surface -->
     <path
-        android:pathData="M54,54m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0"
-        android:fillColor="#2B1B3D" />
+        android:pathData="M-6,77 c3,-3 9,3 12,0 c3,-3 9,3 12,0 c3,-3 9,3 12,0 c3,-3 9,3 12,0 c3,-3 9,3 12,0 c3,-3 9,3 12,0 c3,-3 9,3 12,0 c3,-3 9,3 12,0 c3,-3 9,3 12,0 c3,-3 9,3 12,0"
+        android:strokeColor="#2EFFFFFF"
+        android:strokeWidth="1.6"
+        android:fillColor="#00000000" />
     <path
-        android:pathData="M49,49m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"
-        android:fillColor="#FFFFFF" />
+        android:pathData="M0,90 c3,-2.5 9,2.5 12,0 c3,-2.5 9,2.5 12,0 c3,-2.5 9,2.5 12,0 c3,-2.5 9,2.5 12,0 c3,-2.5 9,2.5 12,0 c3,-2.5 9,2.5 12,0 c3,-2.5 9,2.5 12,0 c3,-2.5 9,2.5 12,0 c3,-2.5 9,2.5 12,0"
+        android:strokeColor="#24FFFFFF"
+        android:strokeWidth="1.6"
+        android:fillColor="#00000000" />
 </vector>

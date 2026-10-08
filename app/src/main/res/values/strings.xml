@@ -57,4 +57,10 @@
     <string name="cd_hide_pin">Hide PIN</string>
     <string name="cd_browse_album">Browse album</string>
     <string name="cd_back">Back</string>
+    <string name="cd_help_button">Help</string>
+
+    <!-- Help dialog -->
+    <string name="help_dialog_title">How It Works</string>
+    <string name="help_dialog_body">Swipe left or right to move between photos and videos. Swipe down to see a thumbnail grid - tap any thumbnail to jump to it. Pinch to zoom in on a photo. Tap the center of a video to play or pause, and drag the small dot at the bottom to seek.\n\nSecret: tap the bottom-right corner of the screen 5 times quickly to end the session early and come back here.</string>
+    <string name="help_dialog_close">Got it</string>
 </resources>

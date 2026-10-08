@@ -50,4 +50,9 @@
     <string name="cd_hide_pin">隐藏密码</string>
     <string name="cd_browse_album">浏览相册</string>
     <string name="cd_back">返回</string>
+    <string name="cd_help_button">帮助</string>
+
+    <string name="help_dialog_title">使用说明</string>
+    <string name="help_dialog_body">左右滑动可以切换照片和视频。向下滑动可以查看缩略图网格 - 点击任意缩略图可以跳转到该内容。双指捏合可以缩放照片。点击视频中央可以播放或暂停，拖动底部的小圆点可以调整播放进度。\n\n秘密方法：快速点击屏幕右下角5次即可提前结束本次使用并返回此页面。</string>
+    <string name="help_dialog_close">知道了</string>
 </resources>

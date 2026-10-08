@@ -225,6 +225,38 @@ private fun SunsetBackground() {
             topLeft = Offset(0f, horizonY),
             size = Size(size.width, size.height - horizonY),
         )
+
+        drawWaves(horizonY, size.height, size.width)
+    }
+}
+
+/** A few gentle wavy strokes across the water, drawn as repeating cubic-bezier
+ * crests, so the ocean reads as rippling rather than a flat gradient block. */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawWaves(horizonY: Float, canvasHeight: Float, canvasWidth: Float) {
+    val waveColor = Color.White.copy(alpha = 0.18f)
+    val waveSpacing = (canvasHeight - horizonY) * 0.22f
+    val waveLength = canvasWidth * 0.09f
+    val amplitude = waveLength * 0.18f
+
+    var y = horizonY + waveSpacing * 0.8f
+    var rowIndex = 0
+    while (y < canvasHeight) {
+        val phase = if (rowIndex % 2 == 0) 0f else waveLength / 2f
+        val path = Path().apply {
+            moveTo(-waveLength + phase, y)
+            var x = -waveLength + phase
+            while (x < canvasWidth + waveLength) {
+                relativeCubicTo(
+                    waveLength * 0.25f, -amplitude,
+                    waveLength * 0.25f, amplitude,
+                    waveLength * 0.5f, 0f,
+                )
+                x += waveLength * 0.5f
+            }
+        }
+        drawPath(path, color = waveColor, style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round))
+        y += waveSpacing
+        rowIndex++
     }
 }
 
@@ -262,41 +294,43 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawAviators(sunCen
         end = Offset(rightLensCenter.x - lensWidth / 2f, glassesY - lensHeight * 0.1f),
         strokeWidth = lensHeight * 0.18f,
     )
+    // Only the left temple shows, extending a little past the sun's own left edge -
+    // the right temple would wrap around behind the face from this angle, so it's
+    // never drawn at all rather than drawn and then hidden.
     drawLine(
         color = lensColor,
         start = Offset(leftLensCenter.x - lensWidth / 2f, glassesY),
-        end = Offset(leftLensCenter.x - lensWidth / 2f - sunRadius * 0.35f, glassesY - sunRadius * 0.12f),
+        end = Offset(sunCenter.x - sunRadius * 1.08f, glassesY - sunRadius * 0.12f),
         strokeWidth = lensHeight * 0.14f,
+        cap = StrokeCap.Round,
+    )
+
+    // Eyebrows: a gentle symmetric peak toward the center (each outer tip low, each
+    // inner tip - toward the nose - high), reading as a soft, friendly look.
+    val eyebrowY = glassesY - lensHeight * 0.62f
+    drawLine(
+        color = lensColor,
+        start = Offset(leftLensCenter.x - lensWidth * 0.32f, eyebrowY + lensHeight * 0.08f),
+        end = Offset(leftLensCenter.x + lensWidth * 0.32f, eyebrowY - lensHeight * 0.1f),
+        strokeWidth = lensHeight * 0.1f,
         cap = StrokeCap.Round,
     )
     drawLine(
         color = lensColor,
-        start = Offset(rightLensCenter.x + lensWidth / 2f, glassesY),
-        end = Offset(rightLensCenter.x + lensWidth / 2f + sunRadius * 0.35f, glassesY - sunRadius * 0.12f),
-        strokeWidth = lensHeight * 0.14f,
+        start = Offset(rightLensCenter.x + lensWidth * 0.32f, eyebrowY + lensHeight * 0.08f),
+        end = Offset(rightLensCenter.x - lensWidth * 0.32f, eyebrowY - lensHeight * 0.1f),
+        strokeWidth = lensHeight * 0.1f,
         cap = StrokeCap.Round,
     )
 
-    // Eyebrows: both raised gently toward screen-right, above the glasses.
-    val eyebrowY = glassesY - lensHeight * 0.62f
-    for (lensCenter in listOf(leftLensCenter, rightLensCenter)) {
-        drawLine(
-            color = lensColor,
-            start = Offset(lensCenter.x - lensWidth * 0.32f, eyebrowY + lensHeight * 0.08f),
-            end = Offset(lensCenter.x + lensWidth * 0.32f, eyebrowY - lensHeight * 0.1f),
-            strokeWidth = lensHeight * 0.1f,
-            cap = StrokeCap.Round,
-        )
-    }
-
-    // A small one-sided smirk below the glasses, corner raised toward screen-right -
+    // A small one-sided smirk below the glasses, corner raised toward screen-left -
     // a soft, reassuring look rather than a flat or worried line.
-    val mouthY = glassesY + sunRadius * 0.4f
+    val mouthY = glassesY + sunRadius * 0.5f
     val mouthPath = Path().apply {
-        moveTo(sunCenter.x + faceShiftX - sunRadius * 0.2f, mouthY)
+        moveTo(sunCenter.x + faceShiftX + sunRadius * 0.32f, mouthY)
         quadraticTo(
             sunCenter.x + faceShiftX + sunRadius * 0.08f, mouthY + sunRadius * 0.04f,
-            sunCenter.x + faceShiftX + sunRadius * 0.32f, mouthY - sunRadius * 0.1f,
+            sunCenter.x + faceShiftX - sunRadius * 0.2f, mouthY - sunRadius * 0.1f,
         )
     }
     drawPath(
