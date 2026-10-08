@@ -44,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.lookseesee.app.R
 import com.lookseesee.app.data.model.MediaEntry
+import com.lookseesee.app.ui.components.MediaThumbnail
 
 private val CORNER_SKIP_HOTSPOT_SIZE = 64.dp
 private const val CORNER_TAP_REQUIRED_COUNT = 5
@@ -188,8 +189,8 @@ private fun GridOverlay(mediaList: List<MediaEntry>, onSelect: (Int) -> Unit, gr
                         .aspectRatio(1f)
                         .clickable { onSelect(index) },
                 ) {
-                    AsyncImage(
-                        model = item.uri,
+                    MediaThumbnail(
+                        uri = item.uri,
                         contentDescription = stringResource(R.string.cd_grid_thumbnail),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),

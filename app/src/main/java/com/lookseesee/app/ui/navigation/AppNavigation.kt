@@ -30,7 +30,14 @@ fun AppNavigation(
         composable(Routes.SESSION) {
             SessionScreen(
                 onEnterKiosk = onEnterKiosk,
-                onSessionEnded = { navController.navigate(Routes.END) },
+                onSessionEnded = {
+                    // Pop the finished session off the back stack - otherwise back/double-back
+                    // on the end screen would return to a Session instance whose countdown has
+                    // already stopped, leaving it browsable at 0:00 with no time limit at all.
+                    navController.navigate(Routes.END) {
+                        popUpTo(Routes.SESSION) { inclusive = true }
+                    }
+                },
             )
         }
         composable(Routes.END) {

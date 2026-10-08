@@ -42,6 +42,7 @@
     <string name="end_house_hint">长按返回</string>
 
     <string name="cd_play_button">播放</string>
+    <string name="cd_replay_button">再次播放</string>
     <string name="cd_scrubber">视频进度</string>
     <string name="cd_grid_thumbnail">照片或视频缩略图</string>
     <string name="cd_sailboat_icon">再玩一次</string>
@@ -53,6 +54,6 @@
     <string name="cd_help_button">帮助</string>
 
     <string name="help_dialog_title">使用说明</string>
-    <string name="help_dialog_body">左右滑动可以切换照片和视频。向下滑动可以查看缩略图网格 - 点击任意缩略图可以跳转到该内容。双指捏合可以缩放照片。点击视频中央可以播放或暂停，拖动底部的小圆点可以调整播放进度。\n\n秘密方法：快速点击屏幕右下角5次即可提前结束本次使用并返回此页面。</string>
+    <string name="help_dialog_body">秘密方法：快速点击屏幕右下角5次即可提前结束本次使用并返回此页面。\n\n结束页面：长按左上角的帆船图标可以再玩一次，长按右上角的房子图标可以返回设置页面——两者都需要先输入密码。</string>
     <string name="help_dialog_close">知道了</string>
 </resources>

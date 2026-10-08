@@ -33,11 +33,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.lookseesee.app.R
 import com.lookseesee.app.data.MediaPickKey
 import com.lookseesee.app.data.model.Album
 import com.lookseesee.app.data.model.MediaEntry
+import com.lookseesee.app.ui.components.MediaThumbnail
 
 /**
  * Full-screen browser for one album (or the cross-album "My Picks" set): a grid of
@@ -120,8 +120,8 @@ fun AlbumDetailScreen(
                             .aspectRatio(1f)
                             .clickable(enabled = !locked) { onToggleItem(entry) },
                     ) {
-                        AsyncImage(
-                            model = entry.uri,
+                        MediaThumbnail(
+                            uri = entry.uri,
                             contentDescription = stringResource(R.string.cd_grid_thumbnail),
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize(),

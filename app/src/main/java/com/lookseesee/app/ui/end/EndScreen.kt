@@ -1,6 +1,7 @@
 package com.lookseesee.app.ui.end
 
 import android.media.MediaPlayer
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -63,6 +64,10 @@ fun EndScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    // No path out of the end screen except the PIN-gated long-presses below - back
+    // (or a double-back) must never return to a browsable session.
+    BackHandler(enabled = true) {}
 
     var pendingAction by remember { mutableStateOf<PendingAction?>(null) }
     var pinError by remember { mutableStateOf(false) }
@@ -215,15 +220,33 @@ private fun SunsetBackground() {
         // Water, drawn last so it sits in front of the sun and covers the small part
         // of it that dips below the horizon. The reflection is a horizontal gradient
         // across the water itself - bright where it's directly under the sun, fading
-        // to plain ocean color at the left and right edges.
-        drawRect(
+        // to plain ocean color at the left and right edges. The horizon itself is a
+        // wavy top edge (the same cubic-bezier ripple used for the surface strokes)
+        // rather than a flat line, so the waves affect the shape of the sea itself.
+        val waveLength = size.width * 0.09f
+        val horizonAmplitude = waveLength * 0.18f
+        val waterPath = Path().apply {
+            moveTo(0f, size.height)
+            lineTo(0f, horizonY)
+            var x = 0f
+            while (x < size.width) {
+                relativeCubicTo(
+                    waveLength * 0.25f, -horizonAmplitude,
+                    waveLength * 0.25f, horizonAmplitude,
+                    waveLength * 0.5f, 0f,
+                )
+                x += waveLength * 0.5f
+            }
+            lineTo(size.width, size.height)
+            close()
+        }
+        drawPath(
+            path = waterPath,
             brush = Brush.horizontalGradient(
                 colors = listOf(SunsetDusk, SunsetGold.copy(alpha = 0.85f), SunsetDusk),
                 startX = 0f,
                 endX = size.width,
             ),
-            topLeft = Offset(0f, horizonY),
-            size = Size(size.width, size.height - horizonY),
         )
 
         drawWaves(horizonY, size.height, size.width)

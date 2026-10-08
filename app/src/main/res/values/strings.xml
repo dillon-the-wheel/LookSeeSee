@@ -49,6 +49,7 @@
 
     <!-- Accessibility -->
     <string name="cd_play_button">Play</string>
+    <string name="cd_replay_button">Play again</string>
     <string name="cd_scrubber">Video progress</string>
     <string name="cd_grid_thumbnail">Photo or video thumbnail</string>
     <string name="cd_sailboat_icon">Play again</string>
@@ -61,6 +62,6 @@
 
     <!-- Help dialog -->
     <string name="help_dialog_title">How It Works</string>
-    <string name="help_dialog_body">Swipe left or right to move between photos and videos. Swipe down to see a thumbnail grid - tap any thumbnail to jump to it. Pinch to zoom in on a photo. Tap the center of a video to play or pause, and drag the small dot at the bottom to seek.\n\nSecret: tap the bottom-right corner of the screen 5 times quickly to end the session early and come back here.</string>
+    <string name="help_dialog_body">Secret: tap the bottom-right corner of the screen 5 times quickly to end the session early and come back here.\n\nAt the end screen: hold the sailboat (top-left) to play again, or the house (top-right) to go back to Setup - both ask for your PIN first.</string>
     <string name="help_dialog_close">Got it</string>
 </resources>

@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -67,6 +68,8 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset, pause: Bool
 
     var isPlaying by remember(uri) { mutableStateOf(false) }
     var isBuffering by remember(uri) { mutableStateOf(true) }
+    var isEnded by remember(uri) { mutableStateOf(false) }
+    var showReplay by remember(uri) { mutableStateOf(false) }
     var positionMs by remember(uri) { mutableFloatStateOf(0f) }
     var durationMs by remember(uri) { mutableFloatStateOf(0f) }
     var isScrubbing by remember(uri) { mutableStateOf(false) }
@@ -81,6 +84,17 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset, pause: Bool
             controlsVisible = true
             delay(1_000)
             controlsVisible = false
+        }
+    }
+
+    // A replay button appears a beat after the video actually ends, rather than the
+    // instant it ends, so the last frame gets a clean moment before a control pops up.
+    LaunchedEffect(isEnded) {
+        if (isEnded) {
+            delay(1_000)
+            showReplay = true
+        } else {
+            showReplay = false
         }
     }
 
@@ -99,6 +113,7 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset, pause: Bool
 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 isBuffering = playbackState == Player.STATE_BUFFERING
+                isEnded = playbackState == Player.STATE_ENDED
             }
         }
         player.addListener(listener)
@@ -148,22 +163,33 @@ fun BoxScope.VideoPlayerView(uri: Uri, scale: Float, offset: Offset, pause: Bool
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
             ) {
-                if (isPlaying) player.pause() else player.play()
+                if (isEnded) {
+                    player.seekTo(0)
+                    player.play()
+                } else if (isPlaying) {
+                    player.pause()
+                } else {
+                    player.play()
+                }
                 revealToken++
             },
         contentAlignment = Alignment.Center,
     ) {
-        if (isBuffering || controlsVisible) {
+        if (isBuffering || (controlsVisible && !isEnded) || (isEnded && showReplay)) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.45f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                if (isBuffering) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(28.dp))
-                } else {
-                    Icon(
+                when {
+                    isBuffering -> CircularProgressIndicator(color = Color.White, modifier = Modifier.size(28.dp))
+                    isEnded && showReplay -> Icon(
+                        imageVector = Icons.Filled.Replay,
+                        contentDescription = stringResource(R.string.cd_replay_button),
+                        tint = Color.White,
+                    )
+                    !isEnded -> Icon(
                         imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                         contentDescription = stringResource(R.string.cd_play_button),
                         tint = Color.White,

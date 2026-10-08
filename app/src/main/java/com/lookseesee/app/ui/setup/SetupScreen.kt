@@ -63,11 +63,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.lookseesee.app.R
 import com.lookseesee.app.data.MediaPickKey
 import com.lookseesee.app.data.MediaTypeFilter
 import com.lookseesee.app.data.model.Album
+import com.lookseesee.app.ui.components.MediaThumbnail
 import com.lookseesee.app.util.AppLanguage
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -345,8 +345,8 @@ private fun AlbumTile(album: Album, selected: Boolean, onToggle: () -> Unit, onB
             .clickable(onClick = onToggle),
     ) {
         Column {
-            AsyncImage(
-                model = album.thumbnailUri,
+            MediaThumbnail(
+                uri = album.thumbnailUri,
                 contentDescription = album.displayName,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -411,8 +411,8 @@ private fun PicksTile(count: Int, thumbnailUri: android.net.Uri?, onOpen: () -> 
                     .fillMaxWidth()
                     .aspectRatio(1f),
             ) {
-                AsyncImage(
-                    model = thumbnailUri,
+                MediaThumbnail(
+                    uri = thumbnailUri,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
